@@ -85,6 +85,7 @@ function Shop() {
         // ---------------------------------------------
         // RESPONSE FORMAT 2
         // ---------------------------------------------
+
         else if (Array.isArray(response.data)) {
           categoryData = response.data;
         }
@@ -159,14 +160,17 @@ function Shop() {
   // =====================================================
 
   const selectedCategoryId = useMemo(() => {
-    if (!selectedCategory || selectedCategory.toLowerCase() === "all") {
+    if (
+      !selectedCategory ||
+      selectedCategory.toLowerCase() === "all"
+    ) {
       return null;
     }
 
     const selected = categories.find(
       (category) =>
         String(category.name).trim().toLowerCase() ===
-        String(selectedCategory).trim().toLowerCase(),
+        String(selectedCategory).trim().toLowerCase()
     );
 
     return selected ? Number(selected.id) : null;
@@ -213,7 +217,10 @@ function Shop() {
           params,
         });
 
-        console.log("Products API Response:", response.data);
+        console.log(
+          "Products API Response:",
+          response.data
+        );
 
         if (!mounted) {
           return;
@@ -242,7 +249,10 @@ function Shop() {
         // =================================================
 
         const total = Number(
-          data?.total ?? data?.totalProducts ?? data?.count ?? 0,
+          data?.total ??
+            data?.totalProducts ??
+            data?.count ??
+            0
         );
 
         setTotalProducts(total);
@@ -251,7 +261,11 @@ function Shop() {
         // TOTAL PAGES
         // =================================================
 
-        let pages = Number(data?.totalPages ?? data?.pages ?? 0);
+        let pages = Number(
+          data?.totalPages ??
+            data?.pages ??
+            0
+        );
 
         // ---------------------------------------------
         // If backend does not send totalPages,
@@ -276,7 +290,10 @@ function Shop() {
           setCurrentPage(pages);
         }
       } catch (err) {
-        console.error("Product API Error:", err);
+        console.error(
+          "Product API Error:",
+          err
+        );
 
         if (!mounted) {
           return;
@@ -286,7 +303,9 @@ function Shop() {
         setTotalProducts(0);
         setTotalPages(1);
 
-        setError("Products load nahi ho pa rahe hain.");
+        setError(
+          "Products load nahi ho pa rahe hain."
+        );
       } finally {
         if (mounted) {
           setLoading(false);
@@ -299,7 +318,11 @@ function Shop() {
     return () => {
       mounted = false;
     };
-  }, [currentPage, searchTerm, selectedCategoryId]);
+  }, [
+    currentPage,
+    searchTerm,
+    selectedCategoryId,
+  ]);
 
   // =====================================================
   // CATEGORY CHANGE
@@ -308,7 +331,10 @@ function Shop() {
   const handleCategoryChange = (category) => {
     const newCategory = category || "All";
 
-    console.log("Category changed:", newCategory);
+    console.log(
+      "Category changed:",
+      newCategory
+    );
 
     setSelectedCategory(newCategory);
 
@@ -344,7 +370,10 @@ function Shop() {
       return;
     }
 
-    console.log("Page changed:", nextPage);
+    console.log(
+      "Page changed:",
+      nextPage
+    );
 
     setCurrentPage(nextPage);
 
@@ -360,7 +389,9 @@ function Shop() {
 
   const categoryFilters = [
     "All",
-    ...categories.map((category) => category.name),
+    ...categories.map(
+      (category) => category.name
+    ),
   ];
 
   // =====================================================
@@ -369,7 +400,10 @@ function Shop() {
 
   const uniqueCategoryFilters = [
     ...new Map(
-      categoryFilters.map((category) => [category.toLowerCase(), category]),
+      categoryFilters.map((category) => [
+        category.toLowerCase(),
+        category,
+      ])
     ).values(),
   ];
 
@@ -390,11 +424,13 @@ function Shop() {
 
   return (
     <section className="w-full bg-[#d9f0fb] py-6 sm:py-8 lg:py-10">
+
       {/* =================================================
           MAIN CONTAINER
       ================================================= */}
 
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16">
+
         {/* =================================================
             CATEGORY CARDS
         ================================================= */}
@@ -424,13 +460,17 @@ function Shop() {
 
               const isSelected =
                 selectedCategory.toLowerCase() ===
-                String(item.name).trim().toLowerCase();
+                String(item.name)
+                  .trim()
+                  .toLowerCase();
 
               return (
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleCategoryChange(item.name)}
+                  onClick={() =>
+                    handleCategoryChange(item.name)
+                  }
                   className={`
                     flex w-full flex-col items-center
                     rounded-3xl border p-4
@@ -475,11 +515,14 @@ function Shop() {
                           2xl:max-h-[175px]
                         "
                         onError={(event) => {
-                          event.currentTarget.style.display = "none";
+                          event.currentTarget.style.display =
+                            "none";
                         }}
                       />
                     ) : (
-                      <span className="text-4xl text-white">🛍️</span>
+                      <span className="text-4xl text-white">
+                        🛍️
+                      </span>
                     )}
                   </div>
 
@@ -496,10 +539,11 @@ function Shop() {
                       2xl:text-[30px]
                     "
                     style={{
-                      fontFamily: "Georgia, serif",
+                      fontFamily:
+                        "Georgia, serif",
                     }}
                   >
-                    {item.name} 
+                    {item.name}
                   </h2>
 
                   {/* CATEGORY ID - OPTIONAL DEBUG */}
@@ -529,17 +573,24 @@ function Shop() {
             pb-8
           "
         >
-          {uniqueCategoryFilters.map((category) => {
-            const isSelected =
-              selectedCategory.toLowerCase() ===
-              String(category).trim().toLowerCase();
+          {uniqueCategoryFilters.map(
+            (category) => {
+              const isSelected =
+                selectedCategory.toLowerCase() ===
+                String(category)
+                  .trim()
+                  .toLowerCase();
 
-            return (
-              <button
-                key={category}
-                type="button"
-                onClick={() => handleCategoryChange(category)}
-                className={`
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() =>
+                    handleCategoryChange(
+                      category
+                    )
+                  }
+                  className={`
                     rounded-full
                     px-5
                     py-3
@@ -554,11 +605,12 @@ function Shop() {
                         : "bg-sky-100 text-slate-700 hover:bg-sky-200"
                     }
                   `}
-              >
-                {category}
-              </button>
-            );
-          })}
+                >
+                  {category}
+                </button>
+              );
+            }
+          )}
         </div>
       </div>
 
@@ -567,13 +619,17 @@ function Shop() {
       ================================================= */}
 
       <div className="mt-8 w-full">
+
         {/* =================================================
             ERROR
         ================================================= */}
 
         {error ? (
           <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-center">
-            <p className="font-semibold text-red-600">{error}</p>
+
+            <p className="font-semibold text-red-600">
+              {error}
+            </p>
 
             <button
               type="button"
@@ -591,12 +647,15 @@ function Shop() {
             >
               Try Again
             </button>
+
           </div>
         ) : (
           <ProductSection
             products={products}
             selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
+            onCategoryChange={
+              handleCategoryChange
+            }
             searchTerm={searchTerm}
             loading={loading}
             currentPage={currentPage}
@@ -605,6 +664,7 @@ function Shop() {
             onPageChange={handlePageChange}
           />
         )}
+
       </div>
     </section>
   );

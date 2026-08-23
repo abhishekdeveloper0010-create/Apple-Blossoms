@@ -44,23 +44,11 @@ function ProductDetail() {
 
         const data = await response.json();
 
-        console.log("=================================");
         console.log("PRODUCT API RESPONSE:", data);
-        console.log("=================================");
 
         if (!response.ok) {
           throw new Error(data.message || "Product not found");
         }
-
-        // =====================================================
-        // IMPORTANT:
-        // Backend response:
-        //
-        // {
-        //   success: true,
-        //   data: { ...product }
-        // }
-        // =====================================================
 
         if (!data.success || !data.data) {
           throw new Error(data.message || "Product not found");
@@ -69,39 +57,35 @@ function ProductDetail() {
         const productData = data.data;
 
         console.log("ACTUAL PRODUCT:", productData);
-        console.log("PRODUCT ID:", productData.id);
-        console.log("PRODUCT NAME:", productData.name);
-        console.log("PRODUCT PRICE:", productData.price);
-        console.log("PRODUCT IMAGE:", productData.image);
-        console.log("PRODUCT STOCK:", productData.stock);
 
-        // Set actual product
         setProduct(productData);
 
-        // =====================================================
         // MAIN IMAGE
-        // =====================================================
-
         if (productData.image) {
           setSelectedImage(productData.image);
         } else if (
-          productData.images &&
           Array.isArray(productData.images) &&
           productData.images.length > 0
         ) {
           setSelectedImage(productData.images[0]);
         }
 
-        // =====================================================
         // SIZE
-        // =====================================================
+        const rawSizes = productData.sizes || productData.size;
 
-        if (productData.sizes) {
-          let sizes = productData.sizes;
+        if (rawSizes) {
+          let sizes = rawSizes;
 
           if (typeof sizes === "string") {
             try {
-              sizes = JSON.parse(sizes);
+              const parsed = JSON.parse(sizes);
+
+              sizes = Array.isArray(parsed)
+                ? parsed
+                : sizes
+                    .split(",")
+                    .map((size) => size.trim())
+                    .filter(Boolean);
             } catch {
               sizes = sizes
                 .split(",")
@@ -121,7 +105,6 @@ function ProductDetail() {
         }
       } catch (error) {
         console.error("PRODUCT FETCH ERROR:", error);
-
         setProduct(null);
       } finally {
         setLoading(false);
@@ -138,11 +121,8 @@ function ProductDetail() {
   // =====================================================
 
   const getImageURL = (image) => {
-    if (!image) {
-      return "";
-    }
+    if (!image) return "";
 
-    // Already complete URL
     if (
       image.startsWith("http://") ||
       image.startsWith("https://")
@@ -150,7 +130,6 @@ function ProductDetail() {
       return image;
     }
 
-    // Remove starting slash
     const cleanImage = image.replace(/^\/+/, "");
 
     return `${IMAGE_URL.replace(/\/$/, "")}/${cleanImage}`;
@@ -219,10 +198,24 @@ function ProductDetail() {
 
   const price = Number(product.price || 0);
 
-  const oldPrice =
+  const oldPrice = Number(
     product.oldPrice ||
     product.old_price ||
-    null;
+    0
+  );
+
+  const discount =
+    oldPrice > price && oldPrice > 0
+      ? Math.round(((oldPrice - price) / oldPrice) * 100)
+      : 0;
+
+  // =====================================================
+  // OFFER
+  // =====================================================
+
+  const productOffer =
+    product.offer ||
+    (discount > 0 ? `${discount}% OFF` : "");
 
   // =====================================================
   // PRODUCT IMAGES
@@ -249,7 +242,6 @@ function ProductDetail() {
     }
   }
 
-  // Database has only image field
   if (
     product.image &&
     productImages.length === 0
@@ -263,22 +255,30 @@ function ProductDetail() {
 
   let productSizes = [];
 
-  if (product.sizes) {
-    if (Array.isArray(product.sizes)) {
-      productSizes = product.sizes;
-    } else if (typeof product.sizes === "string") {
-      try {
-        const parsedSizes = JSON.parse(product.sizes);
+  const rawSizes =
+    product.sizes ||
+    product.size ||
+    "";
 
-        if (Array.isArray(parsedSizes)) {
-          productSizes = parsedSizes;
-        }
-      } catch {
-        productSizes = product.sizes
+  if (Array.isArray(rawSizes)) {
+    productSizes = rawSizes;
+  } else if (typeof rawSizes === "string" && rawSizes.trim()) {
+    try {
+      const parsedSizes = JSON.parse(rawSizes);
+
+      if (Array.isArray(parsedSizes)) {
+        productSizes = parsedSizes;
+      } else {
+        productSizes = rawSizes
           .split(",")
           .map((size) => size.trim())
           .filter(Boolean);
       }
+    } catch {
+      productSizes = rawSizes
+        .split(",")
+        .map((size) => size.trim())
+        .filter(Boolean);
     }
   }
 
@@ -328,7 +328,6 @@ function ProductDetail() {
       wishlist = [];
     }
 
-    // Keep valid objects only
     wishlist = wishlist.filter(
       (item) =>
         item &&
@@ -336,7 +335,6 @@ function ProductDetail() {
         item.id !== undefined
     );
 
-    // Check duplicate
     const alreadyExists = wishlist.some(
       (item) =>
         Number(item.id) === Number(product.id)
@@ -347,40 +345,24 @@ function ProductDetail() {
       return;
     }
 
-    // Complete product object
     const wishlistProduct = {
       id: product.id,
-
       title: productName,
-
       name: productName,
-
-      description:
-        product.description || "",
-
+      description: product.description || "",
       image:
         selectedImage ||
         product.image ||
         "",
-
       images: productImages,
-
-      price: price,
-
-      oldPrice:
-        oldPrice || 0,
-
-      offer:
-        product.offer || "",
-
-      category:
-        product.category || "",
-
-      brand:
-        product.brand || "",
-
-      rating:
-        product.rating || "",
+      price,
+      oldPrice,
+      offer: productOffer,
+      category: product.category || "",
+      brand: product.brand || "",
+      size: selectedSize,
+      sizes: productSizes,
+      rating: product.rating || "",
     };
 
     wishlist.push(wishlistProduct);
@@ -438,13 +420,8 @@ function ProductDetail() {
       return;
     }
 
-    if (!checkSize()) {
-      return;
-    }
-
-    if (!checkStock()) {
-      return;
-    }
+    if (!checkSize()) return;
+    if (!checkStock()) return;
 
     let cart = [];
 
@@ -469,40 +446,22 @@ function ProductDetail() {
     } else {
       cart.push({
         cartItemId: `${product.id}-${selectedSize}-${Date.now()}`,
-
         id: product.id,
-
         title: productName,
-
         name: productName,
-
-        description:
-          product.description || "",
-
+        description: product.description || "",
         image:
           selectedImage ||
           product.image ||
           "",
-
         images: productImages,
-
-        price: price,
-
-        oldPrice:
-          oldPrice || 0,
-
-        offer:
-          product.offer || "",
-
-        category:
-          product.category || "",
-
-        brand:
-          product.brand || "",
-
-        size:
-          selectedSize,
-
+        price,
+        oldPrice,
+        offer: productOffer,
+        category: product.category || "",
+        brand: product.brand || "",
+        size: selectedSize,
+        sizes: productSizes,
         quantity: 1,
       });
     }
@@ -531,48 +490,26 @@ function ProductDetail() {
       return;
     }
 
-    if (!checkSize()) {
-      return;
-    }
-
-    if (!checkStock()) {
-      return;
-    }
+    if (!checkSize()) return;
+    if (!checkStock()) return;
 
     const checkoutProduct = {
       id: product.id,
-
       title: productName,
-
       name: productName,
-
-      description:
-        product.description || "",
-
+      description: product.description || "",
       image:
         selectedImage ||
         product.image ||
         "",
-
       images: productImages,
-
-      price: price,
-
-      oldPrice:
-        oldPrice || 0,
-
-      offer:
-        product.offer || "",
-
-      category:
-        product.category || "",
-
-      brand:
-        product.brand || "",
-
-      size:
-        selectedSize,
-
+      price,
+      oldPrice,
+      offer: productOffer,
+      category: product.category || "",
+      brand: product.brand || "",
+      size: selectedSize,
+      sizes: productSizes,
       quantity: 1,
     };
 
@@ -603,13 +540,9 @@ function ProductDetail() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
 
-            {/* =====================================================
-                LEFT SIDE
-            ===================================================== */}
+            {/* LEFT SIDE */}
 
             <div>
-
-              {/* MAIN IMAGE */}
 
               <div className="bg-gray-100 rounded-3xl p-4 sm:p-6">
 
@@ -618,11 +551,6 @@ function ProductDetail() {
                     src={getImageURL(selectedImage)}
                     alt={productName}
                     onError={(e) => {
-                      console.error(
-                        "IMAGE LOAD ERROR:",
-                        getImageURL(selectedImage)
-                      );
-
                       e.currentTarget.style.display =
                         "none";
                     }}
@@ -671,9 +599,7 @@ function ProductDetail() {
                       <img
                         key={index}
                         src={getImageURL(image)}
-                        alt={`${productName} ${
-                          index + 1
-                        }`}
+                        alt={`${productName} ${index + 1}`}
                         onClick={() =>
                           setSelectedImage(image)
                         }
@@ -701,13 +627,9 @@ function ProductDetail() {
 
             </div>
 
-            {/* =====================================================
-                RIGHT SIDE
-            ===================================================== */}
+            {/* RIGHT SIDE */}
 
             <div>
-
-              {/* CATEGORY */}
 
               {product.category && (
                 <p className="text-gray-500 text-lg">
@@ -717,8 +639,6 @@ function ProductDetail() {
                   </span>
                 </p>
               )}
-
-              {/* TITLE */}
 
               <h1
                 className="
@@ -731,8 +651,6 @@ function ProductDetail() {
               >
                 {productName}
               </h1>
-
-              {/* DESCRIPTION */}
 
               {product.description && (
                 <p
@@ -747,8 +665,6 @@ function ProductDetail() {
                 </p>
               )}
 
-              {/* BRAND */}
-
               {product.brand && (
                 <p className="text-gray-500 pt-3">
                   Brand:{" "}
@@ -757,8 +673,6 @@ function ProductDetail() {
                   </span>
                 </p>
               )}
-
-              {/* RATING */}
 
               {product.rating && (
                 <p
@@ -778,9 +692,10 @@ function ProductDetail() {
                 className="
                   flex
                   items-center
+                  flex-wrap
                   gap-4
                   pt-6
-                  pb-4
+                  pb-2
                 "
               >
                 <span
@@ -794,7 +709,7 @@ function ProductDetail() {
                   ₹{price}
                 </span>
 
-                {oldPrice && (
+                {oldPrice > 0 && oldPrice > price && (
                   <span
                     className="
                       text-xl
@@ -805,11 +720,17 @@ function ProductDetail() {
                     ₹{oldPrice}
                   </span>
                 )}
+
+                {discount > 0 && (
+                  <span className="text-green-600 font-bold">
+                    {discount}% OFF
+                  </span>
+                )}
               </div>
 
               {/* OFFER */}
 
-              {product.offer && (
+              {productOffer && (
                 <div
                   className="
                     mt-3
@@ -822,7 +743,7 @@ function ProductDetail() {
                     font-bold
                   "
                 >
-                  {product.offer}
+                  {productOffer}
                 </div>
               )}
 
@@ -861,20 +782,18 @@ function ProductDetail() {
                             key={index}
                             type="button"
                             onClick={() =>
-                              setSelectedSize(
-                                sizeValue
-                              )
+                              setSelectedSize(sizeValue)
                             }
                             className={`
-                              w-14
+                              min-w-14
                               h-14
+                              px-3
                               rounded-xl
                               border-2
                               font-semibold
                               cursor-pointer
                               ${
-                                selectedSize ===
-                                sizeValue
+                                selectedSize === sizeValue
                                   ? "bg-sky-600 text-white border-sky-600"
                                   : "bg-white text-gray-700 border-gray-300 hover:border-sky-500"
                               }
@@ -949,9 +868,6 @@ function ProductDetail() {
                   pt-8
                 "
               >
-
-                {/* WISHLIST */}
-
                 <button
                   type="button"
                   onClick={addToWishlist}
@@ -968,8 +884,6 @@ function ProductDetail() {
                 >
                   ♡ Wishlist
                 </button>
-
-                {/* ADD TO CART */}
 
                 <button
                   type="button"
@@ -991,8 +905,6 @@ function ProductDetail() {
                   Add to Cart
                 </button>
 
-                {/* BUY NOW */}
-
                 <button
                   type="button"
                   onClick={buyNow}
@@ -1011,7 +923,6 @@ function ProductDetail() {
                 >
                   Buy Now
                 </button>
-
               </div>
 
             </div>
