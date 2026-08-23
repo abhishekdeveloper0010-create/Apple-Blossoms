@@ -4,19 +4,13 @@ const router = express.Router();
 
 const productController = require("../controllers/productController");
 
-const {
-  authenticate,
-  authorize,
-} = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
 
 // =====================================================
 // GET ALL PRODUCTS
 // =====================================================
 
-router.get(
-  "/",
-  productController.getAllProducts
-);
+router.get("/", productController.getAllProducts);
 
 // =====================================================
 // GET SINGLE PRODUCT
@@ -24,10 +18,7 @@ router.get(
 // This must come after "/" and before admin routes
 // =====================================================
 
-router.get(
-  "/:id",
-  productController.getProductById
-);
+router.get("/:id", productController.getProductById);
 
 // =====================================================
 // CREATE PRODUCT
@@ -38,7 +29,7 @@ router.post(
   "/",
   authenticate,
   authorize("admin"),
-  productController.createProduct
+  productController.createProduct,
 );
 
 // =====================================================
@@ -50,7 +41,7 @@ router.put(
   "/:id",
   authenticate,
   authorize("admin"),
-  productController.updateProduct
+  productController.updateProduct,
 );
 
 // =====================================================
@@ -62,7 +53,7 @@ router.delete(
   "/:id",
   authenticate,
   authorize("admin"),
-  productController.deleteProduct
+  productController.deleteProduct,
 );
 
 module.exports = router;
