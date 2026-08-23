@@ -1,8 +1,14 @@
 const express = require("express");
+
 const router = express.Router();
 
-const addressController = require("../controllers/addressController");
-const { authenticate } = require("../middleware/authMiddleware");
+const addressController = require(
+  "../controllers/addressController"
+);
+
+const {
+  authenticate,
+} = require("../middleware/authMiddleware");
 
 // ==============================
 // CREATE ADDRESS

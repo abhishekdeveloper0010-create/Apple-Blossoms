@@ -1,8 +1,8 @@
 const db = require("../config/db");
 
-// ==============================
+// =====================================================
 // CREATE ADDRESS
-// ==============================
+// =====================================================
 
 const createAddress = (addressData, callback) => {
   const {
@@ -19,8 +19,7 @@ const createAddress = (addressData, callback) => {
   } = addressData;
 
   const sql = `
-    INSERT INTO addresses
-    (
+    INSERT INTO addresses (
       user_id,
       full_name,
       phone,
@@ -47,15 +46,15 @@ const createAddress = (addressData, callback) => {
       state,
       pincode,
       country || "India",
-      is_default || false,
+      is_default ? 1 : 0,
     ],
     callback
   );
 };
 
-// ==============================
+// =====================================================
 // GET USER ADDRESSES
-// ==============================
+// =====================================================
 
 const getAddressesByUserId = (userId, callback) => {
   const sql = `
@@ -68,26 +67,40 @@ const getAddressesByUserId = (userId, callback) => {
   db.query(sql, [userId], callback);
 };
 
-// ==============================
+// =====================================================
 // GET SINGLE ADDRESS
-// ==============================
+// =====================================================
 
-const getAddressById = (addressId, userId, callback) => {
+const getAddressById = (
+  addressId,
+  userId,
+  callback
+) => {
   const sql = `
     SELECT *
     FROM addresses
-    WHERE id = ? AND user_id = ?
+    WHERE id = ?
+      AND user_id = ?
     LIMIT 1
   `;
 
-  db.query(sql, [addressId, userId], callback);
+  db.query(
+    sql,
+    [addressId, userId],
+    callback
+  );
 };
 
-// ==============================
+// =====================================================
 // UPDATE ADDRESS
-// ==============================
+// =====================================================
 
-const updateAddress = (addressId, userId, addressData, callback) => {
+const updateAddress = (
+  addressId,
+  userId,
+  addressData,
+  callback
+) => {
   const {
     full_name,
     phone,
@@ -112,7 +125,8 @@ const updateAddress = (addressId, userId, addressData, callback) => {
       pincode = ?,
       country = ?,
       is_default = ?
-    WHERE id = ? AND user_id = ?
+    WHERE id = ?
+      AND user_id = ?
   `;
 
   db.query(
@@ -126,7 +140,7 @@ const updateAddress = (addressId, userId, addressData, callback) => {
       state,
       pincode,
       country || "India",
-      is_default || false,
+      is_default ? 1 : 0,
       addressId,
       userId,
     ],
@@ -134,18 +148,31 @@ const updateAddress = (addressId, userId, addressData, callback) => {
   );
 };
 
-// ==============================
+// =====================================================
 // DELETE ADDRESS
-// ==============================
+// =====================================================
 
-const deleteAddress = (addressId, userId, callback) => {
+const deleteAddress = (
+  addressId,
+  userId,
+  callback
+) => {
   const sql = `
     DELETE FROM addresses
-    WHERE id = ? AND user_id = ?
+    WHERE id = ?
+      AND user_id = ?
   `;
 
-  db.query(sql, [addressId, userId], callback);
+  db.query(
+    sql,
+    [addressId, userId],
+    callback
+  );
 };
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 module.exports = {
   createAddress,

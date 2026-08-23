@@ -4,23 +4,15 @@ const jwt = require("jsonwebtoken");
 // AUTHENTICATE
 // =====================================================
 
-const authenticate = (
-  req,
-  res,
-  next
-) => {
-
+const authenticate = (req, res, next) => {
   try {
-
-    const authHeader =
-      req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
     // No Authorization header
     if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message:
-          "Authorization token is required",
+        message: "Authorization token is required",
       });
     }
 
@@ -28,27 +20,22 @@ const authenticate = (
     // Bearer TOKEN
     // TOKEN
 
-    const token =
-      authHeader.startsWith("Bearer ")
-        ? authHeader.substring(7)
-        : authHeader;
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.substring(7).trim()
+      : authHeader.trim();
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message:
-          "Token not found",
+        message: "Token not found",
       });
     }
 
     // Verify JWT
-
-    const decoded =
-      jwt.verify(
-        token,
-        process.env.JWT_SECRET ||
-          "defaultsecret"
-      );
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
     // User information
     req.user = decoded;
@@ -56,16 +43,11 @@ const authenticate = (
     next();
 
   } catch (error) {
-
-    console.error(
-      "AUTH ERROR:",
-      error.message
-    );
+    console.error("AUTH ERROR:", error.message);
 
     return res.status(401).json({
       success: false,
-      message:
-        "Invalid or expired token",
+      message: "Invalid or expired token",
     });
   }
 };
@@ -74,23 +56,13 @@ const authenticate = (
 // AUTHORIZE
 // =====================================================
 
-const authorize = (
-  ...allowedRoles
-) => {
-
-  return (
-    req,
-    res,
-    next
-  ) => {
-
+const authorize = (...allowedRoles) => {
+  return (req, res, next) => {
     try {
-
       if (!req.user) {
         return res.status(401).json({
           success: false,
-          message:
-            "User authentication required",
+          message: "User authentication required",
         });
       }
 
@@ -102,36 +74,25 @@ const authorize = (
       if (!userRole) {
         return res.status(403).json({
           success: false,
-          message:
-            "User role not found",
+          message: "User role not found",
         });
       }
 
-      if (
-        !allowedRoles.includes(
-          userRole
-        )
-      ) {
+      if (!allowedRoles.includes(userRole)) {
         return res.status(403).json({
           success: false,
-          message:
-            "Access denied",
+          message: "Access denied",
         });
       }
 
       next();
 
     } catch (error) {
-
-      console.error(
-        "AUTHORIZE ERROR:",
-        error
-      );
+      console.error("AUTHORIZE ERROR:", error);
 
       return res.status(403).json({
         success: false,
-        message:
-          "Access denied",
+        message: "Access denied",
       });
     }
   };
