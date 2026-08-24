@@ -14,10 +14,12 @@ function ProductDetail() {
   // =====================================================
 
   const API_URL =
-    import.meta.env.VITE_SERVER_API_URL || "http://localhost:4000/api";
+    import.meta.env.VITE_SERVER_API_URL ||
+    "http://localhost:4000/api";
 
   const IMAGE_URL =
-    import.meta.env.VITE_SERVER_IMAGES_URL || "http://localhost:4000/uploads";
+    import.meta.env.VITE_SERVER_IMAGES_URL ||
+    "http://localhost:4000/uploads";
 
   // =====================================================
   // STATES
@@ -26,8 +28,11 @@ function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [selectedImage, setSelectedImage] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedImage, setSelectedImage] =
+    useState("");
+
+  const [selectedSize, setSelectedSize] =
+    useState("");
 
   // =====================================================
   // GET PRODUCT FROM SERVER
@@ -44,67 +49,111 @@ function ProductDetail() {
 
         const data = await response.json();
 
-        console.log("PRODUCT API RESPONSE:", data);
+        console.log(
+          "PRODUCT API RESPONSE:",
+          data
+        );
 
         if (!response.ok) {
-          throw new Error(data.message || "Product not found");
+          throw new Error(
+            data.message ||
+              "Product not found"
+          );
         }
 
-        if (!data.success || !data.data) {
-          throw new Error(data.message || "Product not found");
+        if (
+          !data.success ||
+          !data.data
+        ) {
+          throw new Error(
+            data.message ||
+              "Product not found"
+          );
         }
 
         const productData = data.data;
 
-        console.log("ACTUAL PRODUCT:", productData);
+        console.log(
+          "ACTUAL PRODUCT:",
+          productData
+        );
 
         setProduct(productData);
 
+        // =================================================
         // MAIN IMAGE
+        // =================================================
+
         if (productData.image) {
-          setSelectedImage(productData.image);
+          setSelectedImage(
+            productData.image
+          );
         } else if (
           Array.isArray(productData.images) &&
           productData.images.length > 0
         ) {
-          setSelectedImage(productData.images[0]);
+          setSelectedImage(
+            productData.images[0]
+          );
         }
 
+        // =================================================
         // SIZE
-        const rawSizes = productData.sizes || productData.size;
+        // =================================================
+
+        const rawSizes =
+          productData.size || "";
 
         if (rawSizes) {
           let sizes = rawSizes;
 
-          if (typeof sizes === "string") {
+          if (
+            typeof sizes === "string"
+          ) {
             try {
-              const parsed = JSON.parse(sizes);
+              const parsed =
+                JSON.parse(sizes);
 
-              sizes = Array.isArray(parsed)
-                ? parsed
-                : sizes
-                    .split(",")
-                    .map((size) => size.trim())
-                    .filter(Boolean);
+              sizes =
+                Array.isArray(parsed)
+                  ? parsed
+                  : sizes
+                      .split(",")
+                      .map((size) =>
+                        size.trim()
+                      )
+                      .filter(Boolean);
             } catch {
               sizes = sizes
                 .split(",")
-                .map((size) => size.trim())
+                .map((size) =>
+                  size.trim()
+                )
                 .filter(Boolean);
             }
           }
 
-          if (Array.isArray(sizes) && sizes.length > 0) {
+          if (
+            Array.isArray(sizes) &&
+            sizes.length > 0
+          ) {
             const firstSize =
-              typeof sizes[0] === "object"
+              typeof sizes[0] ===
+              "object"
                 ? sizes[0].size
                 : sizes[0];
 
-            setSelectedSize(firstSize || "");
+            setSelectedSize(
+              firstSize || ""
+            );
           }
         }
       } catch (error) {
-        console.error("PRODUCT FETCH ERROR:", error);
+        console.error(
+          "PRODUCT FETCH ERROR:",
+          error
+        );
+
         setProduct(null);
       } finally {
         setLoading(false);
@@ -130,9 +179,13 @@ function ProductDetail() {
       return image;
     }
 
-    const cleanImage = image.replace(/^\/+/, "");
+    const cleanImage =
+      image.replace(/^\/+/, "");
 
-    return `${IMAGE_URL.replace(/\/$/, "")}/${cleanImage}`;
+    return `${IMAGE_URL.replace(
+      /\/$/,
+      ""
+    )}/${cleanImage}`;
   };
 
   // =====================================================
@@ -166,7 +219,9 @@ function ProductDetail() {
 
         <button
           type="button"
-          onClick={() => navigate("/shop")}
+          onClick={() =>
+            navigate("/shop")
+          }
           className="
             mt-6
             bg-sky-600
@@ -190,23 +245,30 @@ function ProductDetail() {
   // =====================================================
 
   const productName =
-    product.title || product.name || "Product";
+    product.name || "Product";
 
   // =====================================================
   // PRICE
   // =====================================================
 
-  const price = Number(product.price || 0);
+  const price = Number(
+    product.price || 0
+  );
 
   const oldPrice = Number(
     product.oldPrice ||
-    product.old_price ||
-    0
+      product.old_price ||
+      0
   );
 
   const discount =
-    oldPrice > price && oldPrice > 0
-      ? Math.round(((oldPrice - price) / oldPrice) * 100)
+    oldPrice > price &&
+    oldPrice > 0
+      ? Math.round(
+          ((oldPrice - price) /
+            oldPrice) *
+            100
+        )
       : 0;
 
   // =====================================================
@@ -215,7 +277,30 @@ function ProductDetail() {
 
   const productOffer =
     product.offer ||
-    (discount > 0 ? `${discount}% OFF` : "");
+    (discount > 0
+      ? `${discount}% OFF`
+      : "");
+
+  // =====================================================
+  // SHIPPING + DELIVERY
+  // DATABASE SE
+  // =====================================================
+
+  const shippingCharge = Number(
+    product.shipping_charge || 0
+  );
+
+  const deliveryCharge = Number(
+    product.delivery_charge || 0
+  );
+
+  const shippingFree =
+    Number(product.shipping_free) ===
+    1;
+
+  const deliveryFree =
+    Number(product.delivery_free) ===
+    1;
 
   // =====================================================
   // PRODUCT IMAGES
@@ -224,20 +309,37 @@ function ProductDetail() {
   let productImages = [];
 
   if (product.images) {
-    if (Array.isArray(product.images)) {
-      productImages = product.images;
-    } else if (typeof product.images === "string") {
+    if (
+      Array.isArray(product.images)
+    ) {
+      productImages =
+        product.images;
+    } else if (
+      typeof product.images ===
+      "string"
+    ) {
       try {
-        const parsedImages = JSON.parse(product.images);
+        const parsedImages =
+          JSON.parse(
+            product.images
+          );
 
-        if (Array.isArray(parsedImages)) {
-          productImages = parsedImages;
+        if (
+          Array.isArray(
+            parsedImages
+          )
+        ) {
+          productImages =
+            parsedImages;
         }
       } catch {
-        productImages = product.images
-          .split(",")
-          .map((image) => image.trim())
-          .filter(Boolean);
+        productImages =
+          product.images
+            .split(",")
+            .map((image) =>
+              image.trim()
+            )
+            .filter(Boolean);
       }
     }
   }
@@ -246,39 +348,58 @@ function ProductDetail() {
     product.image &&
     productImages.length === 0
   ) {
-    productImages = [product.image];
+    productImages = [
+      product.image,
+    ];
   }
 
   // =====================================================
   // PRODUCT SIZES
+  // DATABASE COLUMN = size
   // =====================================================
 
   let productSizes = [];
 
   const rawSizes =
-    product.sizes ||
-    product.size ||
-    "";
+    product.size || "";
 
-  if (Array.isArray(rawSizes)) {
+  if (
+    Array.isArray(rawSizes)
+  ) {
     productSizes = rawSizes;
-  } else if (typeof rawSizes === "string" && rawSizes.trim()) {
+  } else if (
+    typeof rawSizes ===
+      "string" &&
+    rawSizes.trim()
+  ) {
     try {
-      const parsedSizes = JSON.parse(rawSizes);
+      const parsedSizes =
+        JSON.parse(rawSizes);
 
-      if (Array.isArray(parsedSizes)) {
-        productSizes = parsedSizes;
+      if (
+        Array.isArray(
+          parsedSizes
+        )
+      ) {
+        productSizes =
+          parsedSizes;
       } else {
-        productSizes = rawSizes
-          .split(",")
-          .map((size) => size.trim())
-          .filter(Boolean);
+        productSizes =
+          rawSizes
+            .split(",")
+            .map((size) =>
+              size.trim()
+            )
+            .filter(Boolean);
       }
     } catch {
-      productSizes = rawSizes
-        .split(",")
-        .map((size) => size.trim())
-        .filter(Boolean);
+      productSizes =
+        rawSizes
+          .split(",")
+          .map((size) =>
+            size.trim()
+          )
+          .filter(Boolean);
     }
   }
 
@@ -301,7 +422,10 @@ function ProductDetail() {
   // =====================================================
 
   const askLogin = () => {
-    alert("Please login or register first.");
+    alert(
+      "Please login or register first."
+    );
+
     navigate("/login");
   };
 
@@ -310,7 +434,8 @@ function ProductDetail() {
   // =====================================================
 
   const addToWishlist = () => {
-    const user = getCurrentUser();
+    const user =
+      getCurrentUser();
 
     if (!user) {
       askLogin();
@@ -322,26 +447,34 @@ function ProductDetail() {
     try {
       wishlist =
         JSON.parse(
-          localStorage.getItem("wishlist")
+          localStorage.getItem(
+            "wishlist"
+          )
         ) || [];
     } catch {
       wishlist = [];
     }
 
-    wishlist = wishlist.filter(
-      (item) =>
-        item &&
-        typeof item === "object" &&
-        item.id !== undefined
-    );
+    wishlist =
+      wishlist.filter(
+        (item) =>
+          item &&
+          typeof item ===
+            "object" &&
+          item.id !== undefined
+      );
 
-    const alreadyExists = wishlist.some(
-      (item) =>
-        Number(item.id) === Number(product.id)
-    );
+    const alreadyExists =
+      wishlist.some(
+        (item) =>
+          Number(item.id) ===
+          Number(product.id)
+      );
 
     if (alreadyExists) {
-      alert("Product already in wishlist.");
+      alert(
+        "Product already in wishlist."
+      );
       return;
     }
 
@@ -349,23 +482,51 @@ function ProductDetail() {
       id: product.id,
       title: productName,
       name: productName,
-      description: product.description || "",
+
+      description:
+        product.description || "",
+
       image:
         selectedImage ||
         product.image ||
         "",
+
       images: productImages,
+
       price,
       oldPrice,
+
       offer: productOffer,
-      category: product.category || "",
-      brand: product.brand || "",
+
+      category:
+        product.category || "",
+
+      category_id:
+        product.category_id || null,
+
       size: selectedSize,
       sizes: productSizes,
-      rating: product.rating || "",
+
+      stock:
+        product.stock || 0,
+
+      // DATABASE CHARGES
+      shipping_charge:
+        shippingCharge,
+
+      delivery_charge:
+        deliveryCharge,
+
+      shipping_free:
+        shippingFree ? 1 : 0,
+
+      delivery_free:
+        deliveryFree ? 1 : 0,
     };
 
-    wishlist.push(wishlistProduct);
+    wishlist.push(
+      wishlistProduct
+    );
 
     localStorage.setItem(
       "wishlist",
@@ -373,10 +534,14 @@ function ProductDetail() {
     );
 
     window.dispatchEvent(
-      new Event("wishlistChanged")
+      new Event(
+        "wishlistChanged"
+      )
     );
 
-    alert("Product added to wishlist!");
+    alert(
+      "Product added to wishlist!"
+    );
   };
 
   // =====================================================
@@ -388,7 +553,10 @@ function ProductDetail() {
       productSizes.length > 0 &&
       !selectedSize
     ) {
-      alert("Please select a size.");
+      alert(
+        "Please select a size."
+      );
+
       return false;
     }
 
@@ -400,8 +568,15 @@ function ProductDetail() {
   // =====================================================
 
   const checkStock = () => {
-    if (Number(product.stock || 0) <= 0) {
-      alert("Product is out of stock.");
+    if (
+      Number(
+        product.stock || 0
+      ) <= 0
+    ) {
+      alert(
+        "Product is out of stock."
+      );
+
       return false;
     }
 
@@ -413,7 +588,8 @@ function ProductDetail() {
   // =====================================================
 
   const addToCart = () => {
-    const user = getCurrentUser();
+    const user =
+      getCurrentUser();
 
     if (!user) {
       askLogin();
@@ -428,43 +604,125 @@ function ProductDetail() {
     try {
       cart =
         JSON.parse(
-          localStorage.getItem("cart")
+          localStorage.getItem(
+            "cart"
+          )
         ) || [];
     } catch {
       cart = [];
     }
 
-    const existingItem = cart.find(
-      (item) =>
-        Number(item.id) === Number(product.id) &&
-        item.size === selectedSize
-    );
+    // ===================================================
+    // CHECK EXISTING PRODUCT + SIZE
+    // ===================================================
+
+    const existingItem =
+      cart.find(
+        (item) =>
+          Number(item.id) ===
+            Number(product.id) &&
+          item.size ===
+            selectedSize
+      );
+
+    // ===================================================
+    // IF PRODUCT ALREADY EXISTS
+    // ===================================================
 
     if (existingItem) {
       existingItem.quantity =
-        Number(existingItem.quantity || 0) + 1;
+        Number(
+          existingItem.quantity || 0
+        ) + 1;
+
+      // Ensure charges are updated
+      existingItem.shipping_charge =
+        shippingCharge;
+
+      existingItem.delivery_charge =
+        deliveryCharge;
+
+      existingItem.shipping_free =
+        shippingFree ? 1 : 0;
+
+      existingItem.delivery_free =
+        deliveryFree ? 1 : 0;
+
     } else {
+
+      // =================================================
+      // NEW CART ITEM
+      // =================================================
+
       cart.push({
-        cartItemId: `${product.id}-${selectedSize}-${Date.now()}`,
+        cartItemId:
+          `${product.id}-${selectedSize}-${Date.now()}`,
+
         id: product.id,
+
         title: productName,
         name: productName,
-        description: product.description || "",
+
+        description:
+          product.description || "",
+
         image:
           selectedImage ||
           product.image ||
           "",
-        images: productImages,
+
+        images:
+          productImages,
+
         price,
         oldPrice,
-        offer: productOffer,
-        category: product.category || "",
-        brand: product.brand || "",
-        size: selectedSize,
-        sizes: productSizes,
+
+        offer:
+          productOffer,
+
+        category:
+          product.category || "",
+
+        category_id:
+          product.category_id ||
+          null,
+
+        size:
+          selectedSize,
+
+        sizes:
+          productSizes,
+
+        stock:
+          product.stock || 0,
+
+        // ===============================================
+        // SHIPPING FROM DATABASE
+        // ===============================================
+
+        shipping_charge:
+          shippingCharge,
+
+        shipping_free:
+          shippingFree ? 1 : 0,
+
+        // ===============================================
+        // DELIVERY FROM DATABASE
+        // ===============================================
+
+        delivery_charge:
+          deliveryCharge,
+
+        delivery_free:
+          deliveryFree ? 1 : 0,
+
         quantity: 1,
       });
     }
+
+    // ===================================================
+    // SAVE CART
+    // ===================================================
 
     localStorage.setItem(
       "cart",
@@ -483,7 +741,8 @@ function ProductDetail() {
   // =====================================================
 
   const buyNow = () => {
-    const user = getCurrentUser();
+    const user =
+      getCurrentUser();
 
     if (!user) {
       askLogin();
@@ -494,28 +753,75 @@ function ProductDetail() {
     if (!checkStock()) return;
 
     const checkoutProduct = {
+      cartItemId:
+        `${product.id}-${selectedSize}-buynow-${Date.now()}`,
+
       id: product.id,
+
       title: productName,
       name: productName,
-      description: product.description || "",
+
+      description:
+        product.description || "",
+
       image:
         selectedImage ||
         product.image ||
         "",
-      images: productImages,
+
+      images:
+        productImages,
+
       price,
       oldPrice,
-      offer: productOffer,
-      category: product.category || "",
-      brand: product.brand || "",
-      size: selectedSize,
-      sizes: productSizes,
+
+      offer:
+        productOffer,
+
+      category:
+        product.category || "",
+
+      category_id:
+        product.category_id ||
+        null,
+
+      size:
+        selectedSize,
+
+      sizes:
+        productSizes,
+
+      stock:
+        product.stock || 0,
+
+      // ===============================================
+      // SHIPPING FROM DATABASE
+      // ===============================================
+
+      shipping_charge:
+        shippingCharge,
+
+      shipping_free:
+        shippingFree ? 1 : 0,
+
+      // ===============================================
+      // DELIVERY FROM DATABASE
+      // ===============================================
+
+      delivery_charge:
+        deliveryCharge,
+
+      delivery_free:
+        deliveryFree ? 1 : 0,
+
       quantity: 1,
     };
 
     localStorage.setItem(
       "buyNowProduct",
-      JSON.stringify(checkoutProduct)
+      JSON.stringify(
+        checkoutProduct
+      )
     );
 
     navigate("/checkout");
@@ -526,7 +832,9 @@ function ProductDetail() {
   // =====================================================
 
   const outOfStock =
-    Number(product.stock || 0) <= 0;
+    Number(
+      product.stock || 0
+    ) <= 0;
 
   // =====================================================
   // JSX
@@ -534,21 +842,27 @@ function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-sky-50 p-4 sm:p-6 lg:p-10">
+
       <div className="max-w-7xl mx-auto">
 
         <div className="bg-white rounded-3xl p-5 sm:p-7 lg:p-10 shadow-sm">
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
 
+            {/* ================================================= */}
             {/* LEFT SIDE */}
+            {/* ================================================= */}
 
             <div>
 
               <div className="bg-gray-100 rounded-3xl p-4 sm:p-6">
 
                 {selectedImage ? (
+
                   <img
-                    src={getImageURL(selectedImage)}
+                    src={getImageURL(
+                      selectedImage
+                    )}
                     alt={productName}
                     onError={(e) => {
                       e.currentTarget.style.display =
@@ -563,21 +877,24 @@ function ProductDetail() {
                       rounded-2xl
                     "
                   />
+
                 ) : (
-                  <div
-                    className="
-                      h-72
-                      sm:h-96
-                      lg:h-[550px]
-                      flex
-                      items-center
-                      justify-center
-                    "
-                  >
+
+                  <div className="
+                    h-72
+                    sm:h-96
+                    lg:h-[550px]
+                    flex
+                    items-center
+                    justify-center
+                  ">
+
                     <p className="text-gray-500">
                       No image available
                     </p>
+
                   </div>
+
                 )}
 
               </div>
@@ -585,23 +902,31 @@ function ProductDetail() {
               {/* THUMBNAILS */}
 
               {productImages.length > 0 && (
-                <div
-                  className="
-                    flex
-                    gap-3
-                    pt-5
-                    overflow-x-auto
-                    pb-2
-                  "
-                >
+
+                <div className="
+                  flex
+                  gap-3
+                  pt-5
+                  overflow-x-auto
+                  pb-2
+                ">
+
                   {productImages.map(
-                    (image, index) => (
+                    (
+                      image,
+                      index
+                    ) => (
+
                       <img
                         key={index}
-                        src={getImageURL(image)}
+                        src={getImageURL(
+                          image
+                        )}
                         alt={`${productName} ${index + 1}`}
                         onClick={() =>
-                          setSelectedImage(image)
+                          setSelectedImage(
+                            image
+                          )
                         }
                         className={`
                           flex-shrink-0
@@ -614,175 +939,185 @@ function ProductDetail() {
                           border-2
                           cursor-pointer
                           ${
-                            selectedImage === image
+                            selectedImage ===
+                            image
                               ? "border-sky-600"
                               : "border-gray-200"
                           }
                         `}
                       />
+
                     )
                   )}
+
                 </div>
+
               )}
 
             </div>
 
+            {/* ================================================= */}
             {/* RIGHT SIDE */}
+            {/* ================================================= */}
 
             <div>
 
+              {/* CATEGORY */}
+
               {product.category && (
+
                 <p className="text-gray-500 text-lg">
+
                   Category:{" "}
+
                   <span className="font-semibold">
                     {product.category}
                   </span>
+
                 </p>
+
               )}
 
-              <h1
-                className="
-                  text-3xl
-                  sm:text-4xl
-                  font-bold
-                  text-gray-800
-                  pt-2
-                "
-              >
+              {/* PRODUCT NAME */}
+
+              <h1 className="
+                text-3xl
+                sm:text-4xl
+                font-bold
+                text-gray-800
+                pt-2
+              ">
+
                 {productName}
+
               </h1>
 
+              {/* DESCRIPTION */}
+
               {product.description && (
-                <p
-                  className="
-                    pt-4
-                    text-gray-600
-                    text-lg
-                    leading-7
-                  "
-                >
+
+                <p className="
+                  pt-4
+                  text-gray-600
+                  text-lg
+                  leading-7
+                ">
+
                   {product.description}
-                </p>
-              )}
 
-              {product.brand && (
-                <p className="text-gray-500 pt-3">
-                  Brand:{" "}
-                  <span className="font-semibold">
-                    {product.brand}
-                  </span>
                 </p>
-              )}
 
-              {product.rating && (
-                <p
-                  className="
-                    mt-3
-                    text-gray-700
-                    font-semibold
-                  "
-                >
-                  ⭐ {product.rating}
-                </p>
               )}
 
               {/* PRICE */}
 
-              <div
-                className="
-                  flex
-                  items-center
-                  flex-wrap
-                  gap-4
-                  pt-6
-                  pb-2
-                "
-              >
-                <span
-                  className="
-                    text-3xl
-                    sm:text-4xl
-                    font-bold
-                    text-gray-900
-                  "
-                >
+              <div className="
+                flex
+                items-center
+                flex-wrap
+                gap-4
+                pt-6
+                pb-2
+              ">
+
+                <span className="
+                  text-3xl
+                  sm:text-4xl
+                  font-bold
+                  text-gray-900
+                ">
                   ₹{price}
                 </span>
 
-                {oldPrice > 0 && oldPrice > price && (
-                  <span
-                    className="
-                      text-xl
-                      text-gray-400
-                      line-through
-                    "
-                  >
+                {oldPrice > 0 &&
+                  oldPrice > price && (
+
+                  <span className="
+                    text-xl
+                    text-gray-400
+                    line-through
+                  ">
                     ₹{oldPrice}
                   </span>
+
                 )}
 
                 {discount > 0 && (
-                  <span className="text-green-600 font-bold">
+
+                  <span className="
+                    text-green-600
+                    font-bold
+                  ">
                     {discount}% OFF
                   </span>
+
                 )}
+
               </div>
 
               {/* OFFER */}
 
               {productOffer && (
-                <div
-                  className="
-                    mt-3
-                    inline-block
-                    bg-green-100
-                    text-green-700
-                    px-4
-                    py-2
-                    rounded-lg
-                    font-bold
-                  "
-                >
+
+                <div className="
+                  mt-3
+                  inline-block
+                  bg-green-100
+                  text-green-700
+                  px-4
+                  py-2
+                  rounded-lg
+                  font-bold
+                ">
+
                   {productOffer}
+
                 </div>
+
               )}
 
               {/* SIZE */}
 
               {productSizes.length > 0 && (
+
                 <div className="pt-8">
 
-                  <h3
-                    className="
-                      text-xl
-                      font-bold
-                      text-gray-800
-                    "
-                  >
+                  <h3 className="
+                    text-xl
+                    font-bold
+                    text-gray-800
+                  ">
                     Select Size
                   </h3>
 
-                  <div
-                    className="
-                      flex
-                      flex-wrap
-                      gap-3
-                      pt-2
-                    "
-                  >
+                  <div className="
+                    flex
+                    flex-wrap
+                    gap-3
+                    pt-2
+                  ">
+
                     {productSizes.map(
-                      (size, index) => {
+                      (
+                        size,
+                        index
+                      ) => {
+
                         const sizeValue =
-                          typeof size === "object"
+                          typeof size ===
+                          "object"
                             ? size.size
                             : size;
 
                         return (
+
                           <button
                             key={index}
                             type="button"
                             onClick={() =>
-                              setSelectedSize(sizeValue)
+                              setSelectedSize(
+                                sizeValue
+                              )
                             }
                             className={`
                               min-w-14
@@ -793,84 +1128,172 @@ function ProductDetail() {
                               font-semibold
                               cursor-pointer
                               ${
-                                selectedSize === sizeValue
+                                selectedSize ===
+                                sizeValue
                                   ? "bg-sky-600 text-white border-sky-600"
                                   : "bg-white text-gray-700 border-gray-300 hover:border-sky-500"
                               }
                             `}
                           >
+
                             {sizeValue}
+
                           </button>
+
                         );
                       }
                     )}
+
                   </div>
 
                   {selectedSize && (
-                    <p className="mt-3 text-gray-600">
+
+                    <p className="
+                      mt-3
+                      text-gray-600
+                    ">
+
                       Selected Size:{" "}
-                      <span className="font-bold text-sky-600">
+
+                      <span className="
+                        font-bold
+                        text-sky-600
+                      ">
+
                         {selectedSize}
+
                       </span>
+
                     </p>
+
                   )}
 
                 </div>
+
               )}
 
               {/* STOCK */}
 
               <div className="pt-7">
 
-                {Number(product.stock || 0) > 0 ? (
-                  <p className="text-green-600 font-semibold">
-                    ✓ In Stock ({product.stock})
+                {Number(
+                  product.stock || 0
+                ) > 0 ? (
+
+                  <p className="
+                    text-green-600
+                    font-semibold
+                  ">
+
+                    ✓ In Stock (
+                    {product.stock}
+                    )
+
                   </p>
+
                 ) : (
-                  <p className="text-red-600 font-semibold">
+
+                  <p className="
+                    text-red-600
+                    font-semibold
+                  ">
+
                     ✕ Out of Stock
+
                   </p>
+
                 )}
 
               </div>
 
-              {/* DELIVERY */}
+              {/* ================================================= */}
+              {/* DELIVERY DATABASE SE */}
+              {/* ================================================= */}
 
-              <div
-                className="
-                  mt-7
-                  bg-gray-100
-                  rounded-2xl
-                  p-5
-                "
-              >
-                <h3 className="font-bold text-lg">
-                  Delivery Details
+              <div className="
+                mt-7
+                bg-gray-100
+                rounded-2xl
+                p-5
+              ">
+
+                <h3 className="
+                  font-bold
+                  text-lg
+                ">
+                  Shipping & Delivery Details
                 </h3>
 
-                <p className="text-gray-600 mt-2">
-                  Free Delivery Available
+                {/* SHIPPING */}
+
+                <p className="
+                  text-gray-600
+                  mt-3
+                ">
+
+                  Shipping:{" "}
+
+                  <span className="
+                    font-semibold
+                    text-green-600
+                  ">
+
+                    {shippingFree
+                      ? "Free"
+                      : `₹${shippingCharge}`}
+
+                  </span>
+
                 </p>
 
-                <p className="text-gray-600 mt-1">
+                {/* DELIVERY */}
+
+                <p className="
+                  text-gray-600
+                  mt-2
+                ">
+
+                  Delivery:{" "}
+
+                  <span className="
+                    font-semibold
+                    text-green-600
+                  ">
+
+                    {deliveryFree
+                      ? "Free"
+                      : `₹${deliveryCharge}`}
+
+                  </span>
+
+                </p>
+
+                <p className="
+                  text-gray-600
+                  mt-2
+                ">
                   Estimated Delivery: 3-5 Days
                 </p>
+
               </div>
 
               {/* BUTTONS */}
 
-              <div
-                className="
-                  grid
-                  grid-cols-1
-                  sm:grid-cols-3
-                  gap-3
-                  pt-8
-                "
-              >
+              <div className="
+                grid
+                grid-cols-1
+                sm:grid-cols-3
+                gap-3
+                pt-8
+              ">
+
+                {/* WISHLIST */}
+
                 <button
                   type="button"
-                  onClick={addToWishlist}
+                  onClick={
+                    addToWishlist
+                  }
                   className="
                     border-2
                     border-rose-400
@@ -884,6 +1307,8 @@ function ProductDetail() {
                 >
                   ♡ Wishlist
                 </button>
+
+                {/* ADD TO CART */}
 
                 <button
                   type="button"
@@ -905,6 +1330,8 @@ function ProductDetail() {
                   Add to Cart
                 </button>
 
+                {/* BUY NOW */}
+
                 <button
                   type="button"
                   onClick={buyNow}
@@ -923,6 +1350,7 @@ function ProductDetail() {
                 >
                   Buy Now
                 </button>
+
               </div>
 
             </div>
@@ -932,6 +1360,7 @@ function ProductDetail() {
         </div>
 
       </div>
+
     </div>
   );
 }
