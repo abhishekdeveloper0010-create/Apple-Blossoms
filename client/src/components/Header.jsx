@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
@@ -23,6 +24,10 @@ function Header() {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const API_URL =
+    import.meta.env.VITE_SERVER_API_URL ||
+    "http://localhost:4000/api";
 
   // =====================================================
   // LOAD SEARCH FROM URL
@@ -50,22 +55,57 @@ function Header() {
       }
     } catch (error) {
       console.error("USER LOAD ERROR:", error);
+
       localStorage.removeItem("user");
       setUser(null);
     }
   };
 
   // =====================================================
-  // COUNT WISHLIST
+  // COUNT WISHLIST FROM DATABASE
   // =====================================================
 
-  const countWishlist = () => {
+  const countWishlist = async () => {
     try {
-      const saved = JSON.parse(localStorage.getItem("wishlist")) || [];
+      const token = localStorage.getItem("token");
 
-      setWishlistCount(saved.length);
+      // User login nahi hai
+      if (!token) {
+        setWishlistCount(0);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/wishlist`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Invalid/expired token
+      if (response.status === 401) {
+        setWishlistCount(0);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to load wishlist"
+        );
+      }
+
+      // Wishlist array
+      const wishlist = Array.isArray(data.wishlist)
+        ? data.wishlist
+        : [];
+
+      setWishlistCount(wishlist.length);
     } catch (error) {
-      console.error("WISHLIST LOAD ERROR:", error);
+      console.error("WISHLIST COUNT ERROR:", error);
+
       setWishlistCount(0);
     }
   };
@@ -76,16 +116,19 @@ function Header() {
 
   const countCart = () => {
     try {
-      const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const savedCart =
+        JSON.parse(localStorage.getItem("cart")) || [];
 
       const totalItems = savedCart.reduce(
-        (sum, item) => sum + Number(item.quantity || 0),
+        (sum, item) =>
+          sum + Number(item.quantity || 0),
         0,
       );
 
       setCartCount(totalItems);
     } catch (error) {
       console.error("CART LOAD ERROR:", error);
+
       setCartCount(0);
     }
   };
@@ -99,40 +142,69 @@ function Header() {
     countWishlist();
     countCart();
 
+    // Auth change
     const handleAuthChanged = () => {
       syncUser();
+      countWishlist();
     };
 
+    // Wishlist change
     const handleWishlistChanged = () => {
       countWishlist();
     };
 
+    // Cart change
     const handleCartChanged = () => {
       countCart();
     };
 
+    // Storage change
     const handleStorage = () => {
       syncUser();
       countWishlist();
       countCart();
     };
 
-    window.addEventListener("authChanged", handleAuthChanged);
+    window.addEventListener(
+      "authChanged",
+      handleAuthChanged
+    );
 
-    window.addEventListener("wishlistChanged", handleWishlistChanged);
+    window.addEventListener(
+      "wishlistChanged",
+      handleWishlistChanged
+    );
 
-    window.addEventListener("cartChanged", handleCartChanged);
+    window.addEventListener(
+      "cartChanged",
+      handleCartChanged
+    );
 
-    window.addEventListener("storage", handleStorage);
+    window.addEventListener(
+      "storage",
+      handleStorage
+    );
 
     return () => {
-      window.removeEventListener("authChanged", handleAuthChanged);
+      window.removeEventListener(
+        "authChanged",
+        handleAuthChanged
+      );
 
-      window.removeEventListener("wishlistChanged", handleWishlistChanged);
+      window.removeEventListener(
+        "wishlistChanged",
+        handleWishlistChanged
+      );
 
-      window.removeEventListener("cartChanged", handleCartChanged);
+      window.removeEventListener(
+        "cartChanged",
+        handleCartChanged
+      );
 
-      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(
+        "storage",
+        handleStorage
+      );
     };
   }, []);
 
@@ -146,7 +218,9 @@ function Header() {
     const value = searchTerm.trim();
 
     if (value) {
-      navigate(`/shop?search=${encodeURIComponent(value)}`);
+      navigate(
+        `/shop?search=${encodeURIComponent(value)}`
+      );
     } else {
       navigate("/shop");
     }
@@ -179,10 +253,18 @@ function Header() {
     localStorage.removeItem("user");
 
     setUser(null);
+    setWishlistCount(0);
+
     setProfileOpen(false);
     setMenuOpen(false);
 
-    window.dispatchEvent(new Event("authChanged"));
+    window.dispatchEvent(
+      new Event("authChanged")
+    );
+
+    window.dispatchEvent(
+      new Event("wishlistChanged")
+    );
 
     navigate("/");
   };
@@ -202,10 +284,13 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#d8edf8] shadow-md">
+
       {/* HEADER CONTAINER */}
 
       <div className="w-full px-4 sm:px-6 lg:px-16">
+
         <div className="flex h-20 items-center justify-between">
+
           {/* LOGO */}
 
           <div className="pl-0 lg:pl-8">
@@ -236,19 +321,31 @@ function Header() {
               lg:flex
             "
           >
-            <Link to="/" className="transition hover:text-sky-600">
+            <Link
+              to="/"
+              className="transition hover:text-sky-600"
+            >
               Home
             </Link>
 
-            <Link to="/shop" className="transition hover:text-sky-600">
+            <Link
+              to="/shop"
+              className="transition hover:text-sky-600"
+            >
               Products
             </Link>
 
-            <Link to="/about" className="transition hover:text-sky-600">
+            <Link
+              to="/about"
+              className="transition hover:text-sky-600"
+            >
               About
             </Link>
 
-            <Link to="/contact" className="transition hover:text-sky-600">
+            <Link
+              to="/contact"
+              className="transition hover:text-sky-600"
+            >
               Contact
             </Link>
           </nav>
@@ -263,6 +360,7 @@ function Header() {
               lg:flex
             "
           >
+
             {/* CART */}
 
             <Link
@@ -278,7 +376,9 @@ function Header() {
               "
             >
               <FaShoppingCart />
+
               Cart
+
               {cartCount > 0 && (
                 <span
                   className="
@@ -308,9 +408,14 @@ function Header() {
             {user ? (
               <div
                 className="relative"
-                onMouseEnter={() => setProfileOpen(true)}
-                onMouseLeave={() => setProfileOpen(false)}
+                onMouseEnter={() =>
+                  setProfileOpen(true)
+                }
+                onMouseLeave={() =>
+                  setProfileOpen(false)
+                }
               >
+
                 {/* PROFILE BUTTON */}
 
                 <Link
@@ -330,6 +435,7 @@ function Header() {
                   "
                 >
                   <FaUserCircle />
+
                   My Account
                 </Link>
 
@@ -350,8 +456,12 @@ function Header() {
                       shadow-lg
                     "
                   >
+
                     <div className="px-2 py-2">
-                      <p className="text-xs text-slate-500">Welcome</p>
+
+                      <p className="text-xs text-slate-500">
+                        Welcome
+                      </p>
 
                       <p className="truncate text-lg font-bold text-slate-800">
                         {user.name || "User"}
@@ -366,9 +476,13 @@ function Header() {
 
                     <hr className="my-2 border-slate-200" />
 
+                    {/* PROFILE */}
+
                     <Link
                       to="/profile"
-                      onClick={() => setProfileOpen(false)}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
                       className="
                         block
                         rounded-xl
@@ -382,9 +496,13 @@ function Header() {
                       My Profile
                     </Link>
 
+                    {/* ORDER TRACKING */}
+
                     <Link
                       to="/order-tracking"
-                      onClick={() => setProfileOpen(false)}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
                       className="
                         block
                         rounded-xl
@@ -398,11 +516,17 @@ function Header() {
                       Order Tracking
                     </Link>
 
+                    {/* WISHLIST */}
+
                     <Link
                       to="/wishlist"
-                      onClick={() => setProfileOpen(false)}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
                       className="
-                        block
+                        flex
+                        items-center
+                        justify-between
                         rounded-xl
                         px-3
                         py-2
@@ -411,13 +535,28 @@ function Header() {
                         hover:bg-sky-50
                       "
                     >
-                      Wishlist
+                      <span>
+                        Wishlist
+                      </span>
+
                       {wishlistCount > 0 && (
-                        <span className="ml-2 text-xs text-sky-600">
-                          ({wishlistCount})
+                        <span
+                          className="
+                            rounded-full
+                            bg-sky-100
+                            px-2
+                            py-0.5
+                            text-xs
+                            font-semibold
+                            text-sky-600
+                          "
+                        >
+                          {wishlistCount}
                         </span>
                       )}
                     </Link>
+
+                    {/* LOGOUT */}
 
                     <button
                       type="button"
@@ -456,10 +595,7 @@ function Header() {
               </Link>
             )}
 
-            {/* =================================================
-                DESKTOP SEARCH
-                ONLY WIDTH REDUCED
-            ================================================= */}
+            {/* DESKTOP SEARCH */}
 
             <div
               className="
@@ -525,10 +661,16 @@ function Header() {
               text-2xl
               lg:hidden
             "
-            onClick={() => setMenuOpen((prev) => !prev)}
+            onClick={() =>
+              setMenuOpen((prev) => !prev)
+            }
             aria-label="Toggle menu"
           >
-            {menuOpen ? <FaTimes /> : <FaBars />}
+            {menuOpen ? (
+              <FaTimes />
+            ) : (
+              <FaBars />
+            )}
           </button>
         </div>
       </div>
@@ -552,24 +694,43 @@ function Header() {
               py-5
             "
           >
-            <Link to="/" onClick={closeMobileMenu}>
+
+            <Link
+              to="/"
+              onClick={closeMobileMenu}
+            >
               Home
             </Link>
 
-            <Link to="/shop" onClick={closeMobileMenu}>
+            <Link
+              to="/shop"
+              onClick={closeMobileMenu}
+            >
               Products
             </Link>
 
-            <Link to="/about" onClick={closeMobileMenu}>
+            <Link
+              to="/about"
+              onClick={closeMobileMenu}
+            >
               About
             </Link>
 
-            <Link to="/contact" onClick={closeMobileMenu}>
+            <Link
+              to="/contact"
+              onClick={closeMobileMenu}
+            >
               Contact
             </Link>
 
-            <Link to="/cart" onClick={closeMobileMenu}>
+            {/* MOBILE CART */}
+
+            <Link
+              to="/cart"
+              onClick={closeMobileMenu}
+            >
               Cart
+
               {cartCount > 0 && (
                 <span className="ml-2 text-xs font-bold text-red-500">
                   ({cartCount})
@@ -589,7 +750,9 @@ function Header() {
                     py-3
                   "
                 >
-                  <p className="text-xs text-slate-500">Welcome</p>
+                  <p className="text-xs text-slate-500">
+                    Welcome
+                  </p>
 
                   <p className="font-bold text-sky-700">
                     {user.name || "User"}
@@ -602,6 +765,8 @@ function Header() {
                   )}
                 </div>
 
+                {/* MY PROFILE */}
+
                 <Link
                   to="/profile"
                   onClick={closeMobileMenu}
@@ -610,18 +775,48 @@ function Header() {
                   My Profile
                 </Link>
 
-                <Link to="/order-tracking" onClick={closeMobileMenu}>
+                {/* ORDER TRACKING */}
+
+                <Link
+                  to="/order-tracking"
+                  onClick={closeMobileMenu}
+                >
                   Order Tracking
                 </Link>
 
-                <Link to="/wishlist" onClick={closeMobileMenu}>
-                  Wishlist
+                {/* WISHLIST */}
+
+                <Link
+                  to="/wishlist"
+                  onClick={closeMobileMenu}
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                  "
+                >
+                  <span>
+                    Wishlist
+                  </span>
+
                   {wishlistCount > 0 && (
-                    <span className="ml-2 text-xs text-sky-600">
-                      ({wishlistCount})
+                    <span
+                      className="
+                        rounded-full
+                        bg-sky-100
+                        px-2
+                        py-0.5
+                        text-xs
+                        font-semibold
+                        text-sky-600
+                      "
+                    >
+                      {wishlistCount}
                     </span>
                   )}
                 </Link>
+
+                {/* LOGOUT */}
 
                 <button
                   type="button"
@@ -644,7 +839,7 @@ function Header() {
               </Link>
             )}
 
-            {/* MOBILE SEARCH - UNCHANGED */}
+            {/* MOBILE SEARCH */}
 
             <form
               onSubmit={handleSearch}

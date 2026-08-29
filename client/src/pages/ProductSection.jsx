@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 function ProductSection({
   products = [],
@@ -20,6 +21,181 @@ function ProductSection({
   const imageURL =
     import.meta.env.VITE_SERVER_IMAGES_URL ||
     "http://localhost:4000/images";
+
+  // =====================================================
+  // WISHLIST
+  // =====================================================
+
+  const API_URL =
+    import.meta.env.VITE_SERVER_API_URL ||
+    "http://localhost:4000/api";
+
+  const [wishlistIds, setWishlistIds] = useState(new Set());
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  // =====================================================
+  // LOAD LOGGED-IN USER WISHLIST
+  // =====================================================
+
+  const loadWishlist = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setWishlistIds(new Set());
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/wishlist`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to load wishlist"
+        );
+      }
+
+      const ids = (data.wishlist || [])
+        .filter(
+          (item) =>
+            item &&
+            (item.id !== undefined ||
+              item.product_id !== undefined)
+        )
+        .map((item) =>
+          Number(item.id ?? item.product_id)
+        );
+
+      setWishlistIds(new Set(ids));
+    } catch (error) {
+      console.error("Wishlist load error:", error);
+      setWishlistIds(new Set());
+    }
+  };
+
+  // =====================================================
+  // LOAD WISHLIST
+  // =====================================================
+
+  useEffect(() => {
+    loadWishlist();
+
+    const handleWishlistChange = () => {
+      loadWishlist();
+    };
+
+    window.addEventListener(
+      "wishlistChanged",
+      handleWishlistChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        "wishlistChanged",
+        handleWishlistChange
+      );
+    };
+  }, []);
+
+  // =====================================================
+  // ADD / REMOVE WISHLIST
+  // =====================================================
+
+  const toggleWishlist = async (event, productId) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert(
+        "Please login first to add products to your wishlist."
+      );
+      return;
+    }
+
+    const id = Number(productId);
+
+    const alreadyWishlisted = wishlistIds.has(id);
+
+    try {
+      setWishlistLoading(true);
+
+      const response = await fetch(
+        alreadyWishlisted
+          ? `${API_URL}/wishlist/${id}`
+          : `${API_URL}/wishlist`,
+        {
+          method: alreadyWishlisted ? "DELETE" : "POST",
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+
+          ...(!alreadyWishlisted && {
+            body: JSON.stringify({
+              product_id: id,
+            }),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            (alreadyWishlisted
+              ? "Failed to remove product from wishlist"
+              : "Failed to add product to wishlist")
+        );
+      }
+
+      // =================================================
+      // UPDATE ICON IMMEDIATELY
+      // =================================================
+
+      setWishlistIds((prev) => {
+        const next = new Set(prev);
+
+        if (alreadyWishlisted) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+
+        return next;
+      });
+
+      // =================================================
+      // UPDATE OTHER WISHLIST COMPONENTS
+      // =================================================
+
+      window.dispatchEvent(
+        new Event("wishlistChanged")
+      );
+    } catch (error) {
+      console.error(
+        "Wishlist update error:",
+        error
+      );
+
+      alert(
+        error.message ||
+          "Wishlist update failed."
+      );
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   // =====================================================
   // DEFAULT CATEGORIES
@@ -114,7 +290,13 @@ function ProductSection({
   const genders =
     filterData.genders?.length > 0
       ? filterData.genders
-      : ["Men", "Women", "Boys", "Girls", "Unisex"];
+      : [
+          "Men",
+          "Women",
+          "Boys",
+          "Girls",
+          "Unisex",
+        ];
 
   const fits =
     filterData.fits?.length > 0
@@ -147,54 +329,86 @@ function ProductSection({
   // SELECTED FILTERS
   // =====================================================
 
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedFabrics, setSelectedFabrics] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-  const [selectedPatterns, setSelectedPatterns] = useState([]);
-  const [selectedGenders, setSelectedGenders] = useState([]);
-  const [selectedFits, setSelectedFits] = useState([]);
-  const [selectedOccasions, setSelectedOccasions] = useState([]);
+  const [selectedBrands, setSelectedBrands] =
+    useState([]);
 
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [selectedRating, setSelectedRating] = useState("");
-  const [selectedDiscount, setSelectedDiscount] = useState("");
+  const [selectedColors, setSelectedColors] =
+    useState([]);
 
-  const [selectedOffers, setSelectedOffers] = useState([]);
+  const [selectedFabrics, setSelectedFabrics] =
+    useState([]);
 
-  const [newArrivals, setNewArrivals] = useState(false);
-  const [includeOutOfStock, setIncludeOutOfStock] = useState(false);
+  const [selectedSizes, setSelectedSizes] =
+    useState([]);
+
+  const [selectedPatterns, setSelectedPatterns] =
+    useState([]);
+
+  const [selectedGenders, setSelectedGenders] =
+    useState([]);
+
+  const [selectedFits, setSelectedFits] =
+    useState([]);
+
+  const [selectedOccasions, setSelectedOccasions] =
+    useState([]);
+
+  const [selectedPrice, setSelectedPrice] =
+    useState("");
+
+  const [selectedRating, setSelectedRating] =
+    useState("");
+
+  const [selectedDiscount, setSelectedDiscount] =
+    useState("");
+
+  const [selectedOffers, setSelectedOffers] =
+    useState([]);
+
+  const [newArrivals, setNewArrivals] =
+    useState(false);
+
+  const [includeOutOfStock, setIncludeOutOfStock] =
+    useState(false);
 
   // =====================================================
   // ACCORDION
   // =====================================================
 
-  const [openSections, setOpenSections] = useState({
-    categories: true,
-    brand: true,
-    color: false,
-    fabric: false,
-    size: false,
-    pattern: false,
-    gender: false,
-    fit: false,
-    occasion: false,
-    price: true,
-    ratings: false,
-    discount: false,
-    offers: false,
-    newArrivals: false,
-    availability: false,
-  });
+  const [openSections, setOpenSections] =
+    useState({
+      categories: true,
+      brand: true,
+      color: false,
+      fabric: false,
+      size: false,
+      pattern: false,
+      gender: false,
+      fit: false,
+      occasion: false,
+      price: true,
+      ratings: false,
+      discount: false,
+      offers: false,
+      newArrivals: false,
+      availability: false,
+    });
 
   // =====================================================
   // SHOW MORE
   // =====================================================
 
-  const [showMoreBrands, setShowMoreBrands] = useState(false);
-  const [showMoreColors, setShowMoreColors] = useState(false);
-  const [showMoreFabrics, setShowMoreFabrics] = useState(false);
-  const [showMorePatterns, setShowMorePatterns] = useState(false);
+  const [showMoreBrands, setShowMoreBrands] =
+    useState(false);
+
+  const [showMoreColors, setShowMoreColors] =
+    useState(false);
+
+  const [showMoreFabrics, setShowMoreFabrics] =
+    useState(false);
+
+  const [showMorePatterns, setShowMorePatterns] =
+    useState(false);
 
   // =====================================================
   // PRICE OPTIONS
@@ -349,20 +563,6 @@ function ProductSection({
   // =====================================================
   // LOCAL FILTERS
   // =====================================================
-  //
-  // IMPORTANT:
-  // CATEGORY FILTER YAHAN NAHI HOGA.
-  //
-  // Category backend handle karta hai:
-  //
-  // category_id = 1 => Shirts
-  // category_id = 2 => Dresses
-  // category_id = 3 => Beauty
-  // category_id = 4 => Bangles
-  // category_id = 5 => Shoes
-  // category_id = 6 => Slippers
-  //
-  // =====================================================
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
@@ -480,7 +680,7 @@ function ProductSection({
 
     // ===================================================
     // PATTERN
-    // =====================================================
+    // ===================================================
 
     if (selectedPatterns.length > 0) {
       result = result.filter((product) =>
@@ -492,7 +692,7 @@ function ProductSection({
 
     // ===================================================
     // GENDER
-    // =====================================================
+    // ===================================================
 
     if (selectedGenders.length > 0) {
       result = result.filter((product) =>
@@ -504,7 +704,7 @@ function ProductSection({
 
     // ===================================================
     // FIT
-    // =====================================================
+    // ===================================================
 
     if (selectedFits.length > 0) {
       result = result.filter((product) =>
@@ -516,7 +716,7 @@ function ProductSection({
 
     // ===================================================
     // OCCASION
-    // =====================================================
+    // ===================================================
 
     if (selectedOccasions.length > 0) {
       result = result.filter((product) =>
@@ -765,12 +965,10 @@ function ProductSection({
     setSelectedGenders([]);
     setSelectedFits([]);
     setSelectedOccasions([]);
-
     setSelectedPrice("");
     setSelectedRating("");
-    setSelectedDiscount("");
+    setSelectedDiscount([]);
     setSelectedOffers([]);
-
     setNewArrivals(false);
     setIncludeOutOfStock(false);
 
@@ -923,7 +1121,6 @@ function ProductSection({
   return (
     <section className="bg-sky-50 p-4 sm:p-6 lg:p-10">
       <div className="rounded-3xl bg-cyan-800 p-4 sm:p-6">
-
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[350px_minmax(0,1fr)]">
 
           {/* =================================================
@@ -1583,7 +1780,9 @@ function ProductSection({
                 {totalProducts} products in database
               </p>
             </div>
-<br/>
+
+            <br />
+
             {/* LOADING */}
 
             {loading ? (
@@ -1615,7 +1814,9 @@ function ProductSection({
               </div>
             ) : (
               <>
-                {/* PRODUCTS GRID */}
+                {/* =================================================
+                    PRODUCTS GRID
+                ================================================= */}
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredProducts.map(
@@ -1645,6 +1846,11 @@ function ProductSection({
                             )
                           : 0;
 
+                      const isWishlisted =
+                        wishlistIds.has(
+                          Number(item.id)
+                        );
+
                       return (
                         <Link
                           key={item.id}
@@ -1653,9 +1859,12 @@ function ProductSection({
                         >
                           <div className="flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:scale-[1.02] hover:shadow-xl">
 
-                            {/* IMAGE */}
+                            {/* =================================================
+                                IMAGE
+                            ================================================= */}
 
                             <div className="relative">
+
                               <img
                                 src={`${imageURL}/${item.image}`}
                                 alt={
@@ -1664,28 +1873,85 @@ function ProductSection({
                                   "Product"
                                 }
                                 className="h-72 w-full object-cover sm:h-80"
-                                onError={(
-                                  e
-                                ) => {
+                                onError={(e) => {
                                   e.currentTarget.style.display =
                                     "none";
                                 }}
                               />
+
+                              {/* DISCOUNT */}
 
                               {hasOldPrice && (
                                 <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-sm font-bold text-white">
                                   {discount}% OFF
                                 </span>
                               )}
+
+                              {/* =================================================
+                                  WISHLIST HEART
+                              ================================================= */}
+
+                              <button
+                                type="button"
+                                aria-label={
+                                  isWishlisted
+                                    ? "Remove from wishlist"
+                                    : "Add to wishlist"
+                                }
+                                disabled={
+                                  wishlistLoading
+                                }
+                                onClick={(event) =>
+                                  toggleWishlist(
+                                    event,
+                                    item.id
+                                  )
+                                }
+                                className="
+                                  absolute
+                                  right-3
+                                  top-3
+                                  flex
+                                  h-12
+                                  w-12
+                                  items-center
+                                  justify-center
+                                  rounded-full
+                                  bg-white
+                                  shadow-md
+                                  transition-all
+                                  duration-200
+                                  hover:scale-110
+                                  disabled:cursor-not-allowed
+                                  disabled:opacity-60
+                                "
+                              >
+                                {isWishlisted ? (
+                                  <FaHeart
+                                    className="
+                                      text-[25px]
+                                      text-red-600
+                                    "
+                                  />
+                                ) : (
+                                  <FaRegHeart
+                                    className="
+                                      text-[26px]
+                                      text-slate-600
+                                    "
+                                  />
+                                )}
+                              </button>
                             </div>
 
-                            {/* INFO */}
+                            {/* =================================================
+                                PRODUCT INFO
+                            ================================================= */}
 
                             <div className="flex flex-1 flex-col p-4 text-center">
+
                               <p className="text-sm text-slate-500">
-                                {
-                                  item.category
-                                }
+                                {item.category}
                               </p>
 
                               <h2 className="mt-1 text-xl font-semibold text-slate-900">
@@ -1696,9 +1962,7 @@ function ProductSection({
 
                               {item.brand && (
                                 <p className="mt-1 text-sm text-slate-500">
-                                  {
-                                    item.brand
-                                  }
+                                  {item.brand}
                                 </p>
                               )}
 
@@ -1711,10 +1975,7 @@ function ProductSection({
 
                                 {hasOldPrice && (
                                   <span className="text-slate-400 line-through">
-                                    ₹
-                                    {
-                                      oldPrice
-                                    }
+                                    ₹{oldPrice}
                                   </span>
                                 )}
                               </div>
@@ -1750,8 +2011,13 @@ function ProductSection({
                     }
                   )}
                 </div>
-<br/><br/>
-                {/* PAGINATION */}
+
+                <br />
+                <br />
+
+                {/* =================================================
+                    PAGINATION
+                ================================================= */}
 
                 {totalPages > 1 && (
                   <div className="mt-12">
@@ -1768,13 +2034,11 @@ function ProductSection({
                         }
                         onClick={() =>
                           onPageChange(
-                            currentPage -
-                              1
+                            currentPage - 1
                           )
                         }
                         className={`rounded-lg px-4 py-2 font-semibold transition ${
-                          currentPage ===
-                          1
+                          currentPage === 1
                             ? "cursor-not-allowed bg-slate-300 text-slate-500"
                             : "bg-white text-cyan-800 hover:bg-cyan-100"
                         }`}
@@ -1835,8 +2099,7 @@ function ProductSection({
                         }
                         onClick={() =>
                           onPageChange(
-                            currentPage +
-                              1
+                            currentPage + 1
                           )
                         }
                         className={`rounded-lg px-4 py-2 font-semibold transition ${
