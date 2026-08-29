@@ -6,6 +6,7 @@ function ProductSection({
   products = [],
   selectedCategory = "All",
   onCategoryChange,
+  onFiltersClear,
   filterData = {},
   searchTerm = "",
   loading = false,
@@ -23,18 +24,22 @@ function ProductSection({
     "http://localhost:4000/images";
 
   // =====================================================
-  // WISHLIST
+  // API URL
   // =====================================================
 
   const API_URL =
     import.meta.env.VITE_SERVER_API_URL ||
     "http://localhost:4000/api";
 
+  // =====================================================
+  // WISHLIST STATE
+  // =====================================================
+
   const [wishlistIds, setWishlistIds] = useState(new Set());
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
   // =====================================================
-  // LOAD LOGGED-IN USER WISHLIST
+  // LOAD WISHLIST
   // =====================================================
 
   const loadWishlist = async () => {
@@ -81,7 +86,7 @@ function ProductSection({
   };
 
   // =====================================================
-  // LOAD WISHLIST
+  // WISHLIST EVENT
   // =====================================================
 
   useEffect(() => {
@@ -134,12 +139,10 @@ function ProductSection({
           : `${API_URL}/wishlist`,
         {
           method: alreadyWishlisted ? "DELETE" : "POST",
-
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-
           ...(!alreadyWishlisted && {
             body: JSON.stringify({
               product_id: id,
@@ -160,7 +163,7 @@ function ProductSection({
       }
 
       // =================================================
-      // UPDATE ICON IMMEDIATELY
+      // UPDATE HEART IMMEDIATELY
       // =================================================
 
       setWishlistIds((prev) => {
@@ -176,7 +179,7 @@ function ProductSection({
       });
 
       // =================================================
-      // UPDATE OTHER WISHLIST COMPONENTS
+      // UPDATE OTHER COMPONENTS
       // =================================================
 
       window.dispatchEvent(
@@ -329,45 +332,22 @@ function ProductSection({
   // SELECTED FILTERS
   // =====================================================
 
-  const [selectedBrands, setSelectedBrands] =
-    useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedFabrics, setSelectedFabrics] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+  const [selectedPatterns, setSelectedPatterns] = useState([]);
+  const [selectedGenders, setSelectedGenders] = useState([]);
+  const [selectedFits, setSelectedFits] = useState([]);
+  const [selectedOccasions, setSelectedOccasions] = useState([]);
 
-  const [selectedColors, setSelectedColors] =
-    useState([]);
+  const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedRating, setSelectedRating] = useState("");
+  const [selectedDiscount, setSelectedDiscount] = useState("");
 
-  const [selectedFabrics, setSelectedFabrics] =
-    useState([]);
+  const [selectedOffers, setSelectedOffers] = useState([]);
 
-  const [selectedSizes, setSelectedSizes] =
-    useState([]);
-
-  const [selectedPatterns, setSelectedPatterns] =
-    useState([]);
-
-  const [selectedGenders, setSelectedGenders] =
-    useState([]);
-
-  const [selectedFits, setSelectedFits] =
-    useState([]);
-
-  const [selectedOccasions, setSelectedOccasions] =
-    useState([]);
-
-  const [selectedPrice, setSelectedPrice] =
-    useState("");
-
-  const [selectedRating, setSelectedRating] =
-    useState("");
-
-  const [selectedDiscount, setSelectedDiscount] =
-    useState("");
-
-  const [selectedOffers, setSelectedOffers] =
-    useState([]);
-
-  const [newArrivals, setNewArrivals] =
-    useState(false);
-
+  const [newArrivals, setNewArrivals] = useState(false);
   const [includeOutOfStock, setIncludeOutOfStock] =
     useState(false);
 
@@ -375,40 +355,32 @@ function ProductSection({
   // ACCORDION
   // =====================================================
 
-  const [openSections, setOpenSections] =
-    useState({
-      categories: true,
-      brand: true,
-      color: false,
-      fabric: false,
-      size: false,
-      pattern: false,
-      gender: false,
-      fit: false,
-      occasion: false,
-      price: true,
-      ratings: false,
-      discount: false,
-      offers: false,
-      newArrivals: false,
-      availability: false,
-    });
+  const [openSections, setOpenSections] = useState({
+    categories: true,
+    brand: true,
+    color: false,
+    fabric: false,
+    size: false,
+    pattern: false,
+    gender: false,
+    fit: false,
+    occasion: false,
+    price: true,
+    ratings: false,
+    discount: false,
+    offers: false,
+    newArrivals: false,
+    availability: false,
+  });
 
   // =====================================================
   // SHOW MORE
   // =====================================================
 
-  const [showMoreBrands, setShowMoreBrands] =
-    useState(false);
-
-  const [showMoreColors, setShowMoreColors] =
-    useState(false);
-
-  const [showMoreFabrics, setShowMoreFabrics] =
-    useState(false);
-
-  const [showMorePatterns, setShowMorePatterns] =
-    useState(false);
+  const [showMoreBrands, setShowMoreBrands] = useState(false);
+  const [showMoreColors, setShowMoreColors] = useState(false);
+  const [showMoreFabrics, setShowMoreFabrics] = useState(false);
+  const [showMorePatterns, setShowMorePatterns] = useState(false);
 
   // =====================================================
   // PRICE OPTIONS
@@ -561,7 +533,7 @@ function ProductSection({
   ]);
 
   // =====================================================
-  // LOCAL FILTERS
+  // LOCAL FILTER
   // =====================================================
 
   const filteredProducts = useMemo(() => {
@@ -604,14 +576,28 @@ function ProductSection({
     }
 
     // ===================================================
+    // CATEGORY
+    // ===================================================
+
+    if (
+      selectedCategory &&
+      selectedCategory !== "All"
+    ) {
+      result = result.filter(
+        (product) =>
+          String(product.category || "")
+            .toLowerCase() ===
+          String(selectedCategory).toLowerCase()
+      );
+    }
+
+    // ===================================================
     // BRAND
     // ===================================================
 
     if (selectedBrands.length > 0) {
       result = result.filter((product) =>
-        selectedBrands.includes(
-          product.brand
-        )
+        selectedBrands.includes(product.brand)
       );
     }
 
@@ -621,9 +607,7 @@ function ProductSection({
 
     if (selectedColors.length > 0) {
       result = result.filter((product) =>
-        selectedColors.includes(
-          product.color
-        )
+        selectedColors.includes(product.color)
       );
     }
 
@@ -633,9 +617,7 @@ function ProductSection({
 
     if (selectedFabrics.length > 0) {
       result = result.filter((product) =>
-        selectedFabrics.includes(
-          product.fabric
-        )
+        selectedFabrics.includes(product.fabric)
       );
     }
 
@@ -658,19 +640,14 @@ function ProductSection({
           );
         }
 
-        if (
-          typeof productSize === "string"
-        ) {
+        if (typeof productSize === "string") {
           const productSizes =
             productSize
               .split(",")
-              .map((size) =>
-                size.trim()
-              );
+              .map((size) => size.trim());
 
-          return productSizes.some(
-            (size) =>
-              selectedSizes.includes(size)
+          return productSizes.some((size) =>
+            selectedSizes.includes(size)
           );
         }
 
@@ -684,9 +661,7 @@ function ProductSection({
 
     if (selectedPatterns.length > 0) {
       result = result.filter((product) =>
-        selectedPatterns.includes(
-          product.pattern
-        )
+        selectedPatterns.includes(product.pattern)
       );
     }
 
@@ -696,9 +671,7 @@ function ProductSection({
 
     if (selectedGenders.length > 0) {
       result = result.filter((product) =>
-        selectedGenders.includes(
-          product.gender
-        )
+        selectedGenders.includes(product.gender)
       );
     }
 
@@ -708,9 +681,7 @@ function ProductSection({
 
     if (selectedFits.length > 0) {
       result = result.filter((product) =>
-        selectedFits.includes(
-          product.fit
-        )
+        selectedFits.includes(product.fit)
       );
     }
 
@@ -720,9 +691,7 @@ function ProductSection({
 
     if (selectedOccasions.length > 0) {
       result = result.filter((product) =>
-        selectedOccasions.includes(
-          product.occasion
-        )
+        selectedOccasions.includes(product.occasion)
       );
     }
 
@@ -731,25 +700,22 @@ function ProductSection({
     // ===================================================
 
     if (selectedPrice) {
-      const range =
-        priceOptions.find(
-          (item) =>
-            item.value === selectedPrice
-        );
+      const range = priceOptions.find(
+        (item) =>
+          item.value === selectedPrice
+      );
 
       if (range) {
-        result = result.filter(
-          (product) => {
-            const price = Number(
-              product.price || 0
-            );
+        result = result.filter((product) => {
+          const price = Number(
+            product.price || 0
+          );
 
-            return (
-              price >= range.min &&
-              price <= range.max
-            );
-          }
-        );
+          return (
+            price >= range.min &&
+            price <= range.max
+          );
+        });
       }
     }
 
@@ -770,34 +736,34 @@ function ProductSection({
     // ===================================================
 
     if (selectedDiscount) {
-      result = result.filter(
-        (product) => {
-          const oldPrice = Number(
-            product.oldPrice || 0
-          );
+      result = result.filter((product) => {
+        const oldPrice = Number(
+          product.oldPrice ||
+            product.old_price ||
+            0
+        );
 
-          const price = Number(
-            product.price || 0
-          );
+        const price = Number(
+          product.price || 0
+        );
 
-          if (
-            !oldPrice ||
-            oldPrice <= price
-          ) {
-            return false;
-          }
-
-          const discount =
-            ((oldPrice - price) /
-              oldPrice) *
-            100;
-
-          return (
-            discount >=
-            Number(selectedDiscount)
-          );
+        if (
+          !oldPrice ||
+          oldPrice <= price
+        ) {
+          return false;
         }
-      );
+
+        const discount =
+          ((oldPrice - price) /
+            oldPrice) *
+          100;
+
+        return (
+          discount >=
+          Number(selectedDiscount)
+        );
+      });
     }
 
     // ===================================================
@@ -805,22 +771,20 @@ function ProductSection({
     // ===================================================
 
     if (selectedOffers.length > 0) {
-      result = result.filter(
-        (product) => {
-          const offer = String(
-            product.offerType ||
-              product.offer ||
-              ""
-          ).toLowerCase();
+      result = result.filter((product) => {
+        const offer = String(
+          product.offerType ||
+            product.offer ||
+            ""
+        ).toLowerCase();
 
-          return selectedOffers.some(
-            (selectedOffer) =>
-              offer.includes(
-                selectedOffer.toLowerCase()
-              )
-          );
-        }
-      );
+        return selectedOffers.some(
+          (selectedOffer) =>
+            offer.includes(
+              selectedOffer.toLowerCase()
+            )
+        );
+      });
     }
 
     // ===================================================
@@ -842,42 +806,41 @@ function ProductSection({
     // ===================================================
 
     if (!includeOutOfStock) {
-      result = result.filter(
-        (product) => {
-          if (
-            product.inStock ===
-              undefined &&
-            product.stock === undefined
-          ) {
-            return true;
-          }
-
-          if (
-            Number(product.stock) <= 0
-          ) {
-            return false;
-          }
-
-          if (
-            product.inStock !== undefined
-          ) {
-            return (
-              product.inStock === true ||
-              product.inStock === 1 ||
-              product.inStock === "1" ||
-              product.inStock === "true"
-            );
-          }
-
+      result = result.filter((product) => {
+        if (
+          product.inStock === undefined &&
+          product.stock === undefined
+        ) {
           return true;
         }
-      );
+
+        if (
+          product.stock !== undefined &&
+          Number(product.stock) <= 0
+        ) {
+          return false;
+        }
+
+        if (
+          product.inStock !== undefined
+        ) {
+          return (
+            product.inStock === true ||
+            product.inStock === 1 ||
+            product.inStock === "1" ||
+            product.inStock === "true"
+          );
+        }
+
+        return true;
+      });
     }
 
     return result;
   }, [
     products,
     searchTerm,
+    selectedCategory,
     selectedBrands,
     selectedColors,
     selectedFabrics,
@@ -953,10 +916,16 @@ function ProductSection({
   };
 
   // =====================================================
-  // RESET FILTERS
+  // RESET ALL FILTERS
   // =====================================================
 
   const resetFilters = () => {
+    console.log("CLEAR ALL FILTERS");
+
+    // -----------------------------------------------
+    // LOCAL FILTERS CLEAR
+    // -----------------------------------------------
+
     setSelectedBrands([]);
     setSelectedColors([]);
     setSelectedFabrics([]);
@@ -965,19 +934,38 @@ function ProductSection({
     setSelectedGenders([]);
     setSelectedFits([]);
     setSelectedOccasions([]);
+
     setSelectedPrice("");
     setSelectedRating("");
-    setSelectedDiscount([]);
+    setSelectedDiscount("");
+
     setSelectedOffers([]);
+
     setNewArrivals(false);
     setIncludeOutOfStock(false);
+
+    // -----------------------------------------------
+    // CATEGORY CLEAR
+    // -----------------------------------------------
 
     if (onCategoryChange) {
       onCategoryChange("All");
     }
 
+    // -----------------------------------------------
+    // PAGE RESET
+    // -----------------------------------------------
+
     if (onPageChange) {
       onPageChange(1);
+    }
+
+    // -----------------------------------------------
+    // PARENT API RESET
+    // -----------------------------------------------
+
+    if (onFiltersClear) {
+      onFiltersClear();
     }
   };
 
@@ -1112,7 +1100,7 @@ function ProductSection({
 
   const lastProductIndex =
     firstProductIndex +
-    products.length;
+    filteredProducts.length;
 
   // =====================================================
   // RENDER
@@ -1121,11 +1109,12 @@ function ProductSection({
   return (
     <section className="bg-sky-50 p-4 sm:p-6 lg:p-10">
       <div className="rounded-3xl bg-cyan-800 p-4 sm:p-6">
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[350px_minmax(0,1fr)]">
 
-          {/* =================================================
+          {/* =====================================================
               FILTER SIDEBAR
-          ================================================= */}
+          ===================================================== */}
 
           <aside className="h-fit max-h-[calc(100vh-120px)] overflow-y-auto rounded-2xl bg-white p-6 sm:p-7 lg:sticky lg:top-24">
 
@@ -1159,9 +1148,9 @@ function ProductSection({
               </div>
             )}
 
-            {/* =================================================
+            {/* =====================================================
                 CATEGORY
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="CATEGORIES"
@@ -1217,9 +1206,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 BRAND
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Brand"
@@ -1269,9 +1258,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 COLOR
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Color"
@@ -1321,9 +1310,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 FABRIC
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Fabric"
@@ -1373,9 +1362,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 SIZE
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Size"
@@ -1405,9 +1394,9 @@ function ProductSection({
               ))}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 PATTERN
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Pattern"
@@ -1457,9 +1446,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 GENDER
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Gender"
@@ -1489,9 +1478,9 @@ function ProductSection({
               ))}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 FIT
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Fit"
@@ -1521,9 +1510,9 @@ function ProductSection({
               ))}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 OCCASION
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Occasion"
@@ -1555,9 +1544,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 PRICE
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Price"
@@ -1589,9 +1578,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
-                RATING
-            ================================================= */}
+            {/* =====================================================
+                RATINGS
+            ===================================================== */}
 
             <FilterSection
               title="Customer Ratings"
@@ -1623,9 +1612,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 DISCOUNT
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Discount"
@@ -1642,9 +1631,7 @@ function ProductSection({
                   <RadioOption
                     key={discount.value}
                     name="discount"
-                    label={
-                      discount.label
-                    }
+                    label={discount.label}
                     checked={
                       Number(
                         selectedDiscount
@@ -1661,9 +1648,9 @@ function ProductSection({
               )}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 OFFERS
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Offers"
@@ -1693,9 +1680,9 @@ function ProductSection({
               ))}
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 NEW ARRIVALS
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="New Arrivals"
@@ -1716,9 +1703,9 @@ function ProductSection({
               />
             </FilterSection>
 
-            {/* =================================================
+            {/* =====================================================
                 AVAILABILITY
-            ================================================= */}
+            ===================================================== */}
 
             <FilterSection
               title="Availability"
@@ -1743,20 +1730,22 @@ function ProductSection({
               />
             </FilterSection>
 
-            {/* CLEAR ALL */}
+            {/* =====================================================
+                CLEAR ALL FILTERS
+            ===================================================== */}
 
             <button
               type="button"
               onClick={resetFilters}
-              className="mt-6 w-full rounded-lg bg-cyan-800 py-3 font-semibold text-white hover:bg-cyan-950"
+              className="mt-6 w-full rounded-lg bg-cyan-800 py-3 font-semibold text-white transition hover:bg-cyan-950"
             >
               Clear All Filters
             </button>
           </aside>
 
-          {/* =================================================
+          {/* =====================================================
               PRODUCTS AREA
-          ================================================= */}
+          ===================================================== */}
 
           <div className="min-w-0">
 
@@ -1770,8 +1759,7 @@ function ProductSection({
               <p className="pt-2 text-[17px] text-slate-100">
                 {searchTerm
                   ? `Search results for "${searchTerm}"`
-                  : selectedCategory ===
-                    "All"
+                  : selectedCategory === "All"
                   ? "Browse all products available in the store."
                   : `Showing ${selectedCategory} products.`}
               </p>
@@ -1793,8 +1781,7 @@ function ProductSection({
                   Loading products...
                 </p>
               </div>
-            ) : filteredProducts.length ===
-              0 ? (
+            ) : filteredProducts.length === 0 ? (
               <div className="rounded-3xl bg-white p-14 text-center">
                 <h3 className="text-2xl font-semibold text-slate-800">
                   No products found
@@ -1819,6 +1806,7 @@ function ProductSection({
                 ================================================= */}
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+
                   {filteredProducts.map(
                     (item) => {
                       const price =
@@ -1829,6 +1817,7 @@ function ProductSection({
                       const oldPrice =
                         Number(
                           item.oldPrice ||
+                            item.old_price ||
                             0
                         );
 
@@ -1859,12 +1848,9 @@ function ProductSection({
                         >
                           <div className="flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:scale-[1.02] hover:shadow-xl">
 
-                            {/* =================================================
-                                IMAGE
-                            ================================================= */}
+                            {/* IMAGE */}
 
                             <div className="relative">
-
                               <img
                                 src={`${imageURL}/${item.image}`}
                                 alt={
@@ -1907,46 +1893,17 @@ function ProductSection({
                                     item.id
                                   )
                                 }
-                                className="
-                                  absolute
-                                  right-3
-                                  top-3
-                                  flex
-                                  h-12
-                                  w-12
-                                  items-center
-                                  justify-center
-                                  rounded-full
-                                  bg-white
-                                  shadow-md
-                                  transition-all
-                                  duration-200
-                                  hover:scale-110
-                                  disabled:cursor-not-allowed
-                                  disabled:opacity-60
-                                "
+                                className="absolute right-3 top-3 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-60"
                               >
                                 {isWishlisted ? (
-                                  <FaHeart
-                                    className="
-                                      text-[25px]
-                                      text-red-600
-                                    "
-                                  />
+                                  <FaHeart className="text-[25px] text-red-600" />
                                 ) : (
-                                  <FaRegHeart
-                                    className="
-                                      text-[26px]
-                                      text-slate-600
-                                    "
-                                  />
+                                  <FaRegHeart className="text-[26px] text-slate-600" />
                                 )}
                               </button>
                             </div>
 
-                            {/* =================================================
-                                PRODUCT INFO
-                            ================================================= */}
+                            {/* PRODUCT INFO */}
 
                             <div className="flex flex-1 flex-col p-4 text-center">
 
@@ -2029,8 +1986,7 @@ function ProductSection({
                       <button
                         type="button"
                         disabled={
-                          currentPage ===
-                          1
+                          currentPage === 1
                         }
                         onClick={() =>
                           onPageChange(
@@ -2129,11 +2085,9 @@ function ProductSection({
 
                       <p className="mt-1 text-sm text-slate-200">
                         Showing{" "}
-                        {totalProducts ===
-                        0
+                        {totalProducts === 0
                           ? 0
-                          : firstProductIndex +
-                            1}
+                          : firstProductIndex + 1}
                         -
                         {Math.min(
                           lastProductIndex,

@@ -432,118 +432,67 @@ function ProductDetail() {
   // =====================================================
   // WISHLIST
   // =====================================================
+ 
+ 
+const addToWishlist = async () => {
+  const user = getCurrentUser();
 
-  const addToWishlist = () => {
-    const user =
-      getCurrentUser();
+  // Login check
+  if (!user) {
+    askLogin();
+    return;
+  }
 
-    if (!user) {
-      askLogin();
-      return;
-    }
+  const token = localStorage.getItem("token");
 
-    let wishlist = [];
+  if (!token) {
+    askLogin();
+    return;
+  }
 
-    try {
-      wishlist =
-        JSON.parse(
-          localStorage.getItem(
-            "wishlist"
-          )
-        ) || [];
-    } catch {
-      wishlist = [];
-    }
-
-    wishlist =
-      wishlist.filter(
-        (item) =>
-          item &&
-          typeof item ===
-            "object" &&
-          item.id !== undefined
-      );
-
-    const alreadyExists =
-      wishlist.some(
-        (item) =>
-          Number(item.id) ===
-          Number(product.id)
-      );
-
-    if (alreadyExists) {
-      alert(
-        "Product already in wishlist."
-      );
-      return;
-    }
-
-    const wishlistProduct = {
-      id: product.id,
-      title: productName,
-      name: productName,
-
-      description:
-        product.description || "",
-
-      image:
-        selectedImage ||
-        product.image ||
-        "",
-
-      images: productImages,
-
-      price,
-      oldPrice,
-
-      offer: productOffer,
-
-      category:
-        product.category || "",
-
-      category_id:
-        product.category_id || null,
-
-      size: selectedSize,
-      sizes: productSizes,
-
-      stock:
-        product.stock || 0,
-
-      // DATABASE CHARGES
-      shipping_charge:
-        shippingCharge,
-
-      delivery_charge:
-        deliveryCharge,
-
-      shipping_free:
-        shippingFree ? 1 : 0,
-
-      delivery_free:
-        deliveryFree ? 1 : 0,
-    };
-
-    wishlist.push(
-      wishlistProduct
+  try {
+    const response = await fetch(
+      `${API_URL.replace(/\/$/, "")}/wishlist`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+        }),
+      }
     );
 
-    localStorage.setItem(
-      "wishlist",
-      JSON.stringify(wishlist)
-    );
+    const data = await response.json();
 
+    console.log("ADD WISHLIST RESPONSE:", data);
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to add product to wishlist"
+      );
+    }
+
+    // Notify Wishlist/Header
     window.dispatchEvent(
-      new Event(
-        "wishlistChanged"
-      )
+      new Event("wishlistChanged")
+    );
+
+    alert("Product added to wishlist!");
+  } catch (error) {
+    console.error(
+      "Add wishlist error:",
+      error
     );
 
     alert(
-      "Product added to wishlist!"
+      error.message ||
+        "Failed to add product to wishlist."
     );
-  };
-
+  }
+};
   // =====================================================
   // SIZE CHECK
   // =====================================================
@@ -1289,24 +1238,22 @@ function ProductDetail() {
 
                 {/* WISHLIST */}
 
-                <button
-                  type="button"
-                  onClick={
-                    addToWishlist
-                  }
-                  className="
-                    border-2
-                    border-rose-400
-                    text-rose-500
-                    py-3
-                    rounded-xl
-                    font-bold
-                    hover:bg-rose-50
-                    cursor-pointer
-                  "
-                >
-                  ♡ Wishlist
-                </button>
+              <button
+  type="button"
+  onClick={addToWishlist}
+  className="
+    border-2
+    border-rose-400
+    text-rose-500
+    py-3
+    rounded-xl
+    font-bold
+    hover:bg-rose-50
+    cursor-pointer
+  "
+>
+  ♡ Wishlist
+</button>
 
                 {/* ADD TO CART */}
 
