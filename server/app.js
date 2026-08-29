@@ -13,6 +13,7 @@ const newsletterRoutes = require("./routes/newsletterRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
 
 const { google } = require("googleapis");
 
@@ -120,3 +121,6 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+
+app.use("/api/wishlist", wishlistRoutes);
