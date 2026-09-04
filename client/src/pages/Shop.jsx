@@ -304,7 +304,7 @@ function Shop() {
         setTotalPages(1);
 
         setError(
-          "Products load nahi ho pa rahe hain."
+          "Products are not loading."
         );
       } finally {
         if (mounted) {
