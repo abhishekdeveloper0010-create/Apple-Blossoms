@@ -6,28 +6,50 @@ function CartItem({
   increaseQty,
   decreaseQty,
 }) {
-  const imageURL = import.meta.env.VITE_SERVER_IMAGES_URL;
+  const IMAGE_URL =
+    import.meta.env.VITE_SERVER_IMAGES_URL ||
+    "http://localhost:4000/images";
 
   // =========================
-  // IMAGE URL
+  // GET IMAGE URL
   // =========================
-
   const getImageURL = (image) => {
     if (!image) {
       return "";
     }
 
-    // Agar image already complete URL hai
+    const imageString = String(image).trim();
+
+    // Already full URL
     if (
-      image.startsWith("http://") ||
-      image.startsWith("https://")
+      imageString.startsWith("http://") ||
+      imageString.startsWith("https://")
     ) {
-      return image;
+      return imageString;
     }
 
-    // Server image
-    return `${imageURL}/${image}`;
+    // Remove starting slash
+    const cleanImage = imageString.replace(/^\/+/, "");
+
+    // Remove duplicate images/
+    const finalImage = cleanImage.replace(/^images\//, "");
+
+    return `${IMAGE_URL.replace(/\/+$/, "")}/${finalImage}`;
   };
+
+  const quantity = Number(item.quantity || 1);
+
+  const stock = Number(item.stock ?? 0);
+
+  const productImage =
+    item.image ||
+    item.productImage ||
+    item.product_image ||
+    (Array.isArray(item.images)
+      ? item.images[0]
+      : item.images);
+
+  const imageURL = getImageURL(productImage);
 
   return (
     <div
@@ -42,29 +64,53 @@ function CartItem({
         bg-white
       "
     >
-
-      {/* ========================= */}
-      {/* IMAGE */}
-      {/* ========================= */}
+      {/* =========================
+          IMAGE
+      ========================= */}
 
       <div className="col-span-12 sm:col-span-2">
+        {imageURL ? (
+          <img
+            src={imageURL}
+            alt={item.name || item.title || "Product"}
+            className="
+              w-32
+              h-36
+              rounded-xl
+              object-cover
+              border
+            "
+            onError={(e) => {
+              console.error(
+                "IMAGE ERROR:",
+                e.currentTarget.src
+              );
 
-        <img
-          src={getImageURL(item.image)}
-          alt={item.name || item.title || "Product"}
-          className="
-            w-32
-            h-36
-            rounded-xl
-            object-cover
-          "
-        />
-
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <div
+            className="
+              w-32
+              h-36
+              rounded-xl
+              border
+              flex
+              items-center
+              justify-center
+              bg-gray-100
+              text-gray-400
+            "
+          >
+            No Image
+          </div>
+        )}
       </div>
 
-      {/* ========================= */}
-      {/* PRODUCT DETAILS */}
-      {/* ========================= */}
+      {/* =========================
+          PRODUCT DETAILS
+      ========================= */}
 
       <div
         className="
@@ -73,41 +119,27 @@ function CartItem({
           text-gray-700
         "
       >
-
-        {/* PRODUCT NAME */}
-
         <h2 className="text-2xl font-bold">
-          {item.name || item.title}
+          {item.name || item.title || "Product"}
         </h2>
 
-        {/* DESCRIPTION */}
-
-        <p className="text-gray-500 mt-1">
-          {item.description}
-        </p>
-
-        {/* PRICE */}
+        {item.description && (
+          <p className="text-gray-500 mt-1">
+            {item.description}
+          </p>
+        )}
 
         <div className="flex items-center gap-4 pt-4">
-
           <span className="text-2xl font-bold text-gray-700">
-            ₹{item.price}
+            ₹{Number(item.price || 0).toFixed(0)}
           </span>
 
           {item.oldPrice && (
-            <span
-              className="
-                line-through
-                text-gray-400
-              "
-            >
-              ₹{item.oldPrice}
+            <span className="line-through text-gray-400">
+              ₹{Number(item.oldPrice).toFixed(0)}
             </span>
           )}
-
         </div>
-
-        {/* OFFER */}
 
         {item.offer && (
           <p className="text-green-600 font-semibold mt-2">
@@ -115,11 +147,24 @@ function CartItem({
           </p>
         )}
 
+        {stock <= 0 ? (
+          <p className="mt-2 font-semibold text-red-600">
+            Out of Stock
+          </p>
+        ) : quantity >= stock ? (
+          <p className="mt-2 font-semibold text-orange-600">
+            Only {stock} available
+          </p>
+        ) : (
+          <p className="mt-2 text-green-600">
+            In Stock
+          </p>
+        )}
       </div>
 
-      {/* ========================= */}
-      {/* SIZE */}
-      {/* ========================= */}
+      {/* =========================
+          SIZE
+      ========================= */}
 
       <div
         className="
@@ -131,7 +176,6 @@ function CartItem({
           py-4
         "
       >
-
         <p className="font-semibold pb-2">
           Size
         </p>
@@ -139,12 +183,11 @@ function CartItem({
         <h3 className="text-2xl font-bold mt-3">
           {item.size || "-"}
         </h3>
-
       </div>
 
-      {/* ========================= */}
-      {/* QUANTITY */}
-      {/* ========================= */}
+      {/* =========================
+          QUANTITY
+      ========================= */}
 
       <div
         className="
@@ -155,7 +198,6 @@ function CartItem({
           py-4
         "
       >
-
         <p className="font-semibold pb-4">
           Quantity
         </p>
@@ -168,9 +210,6 @@ function CartItem({
             gap-3
           "
         >
-
-          {/* MINUS */}
-
           <button
             type="button"
             onClick={() =>
@@ -190,18 +229,18 @@ function CartItem({
             -
           </button>
 
-          {/* QUANTITY */}
-
           <span className="text-2xl font-bold">
-            {item.quantity}
+            {quantity}
           </span>
-
-          {/* PLUS */}
 
           <button
             type="button"
             onClick={() =>
               increaseQty(item.cartItemId)
+            }
+            disabled={
+              stock <= 0 ||
+              quantity >= stock
             }
             className="
               w-10
@@ -212,18 +251,18 @@ function CartItem({
               cursor-pointer
               font-bold
               text-xl
+              disabled:opacity-40
+              disabled:cursor-not-allowed
             "
           >
             +
           </button>
-
         </div>
-
       </div>
 
-      {/* ========================= */}
-      {/* REMOVE */}
-      {/* ========================= */}
+      {/* =========================
+          REMOVE
+      ========================= */}
 
       <div
         className="
@@ -233,7 +272,6 @@ function CartItem({
           justify-center
         "
       >
-
         <button
           type="button"
           onClick={() =>
@@ -249,9 +287,7 @@ function CartItem({
         >
           <FaTrashAlt />
         </button>
-
       </div>
-
     </div>
   );
 }

@@ -25,33 +25,53 @@ const getUserId = (req) => {
 // =====================================================
 // HELPER: EXPECTED DELIVERY DATE
 // Default: 8 days from order date
-// Example:
-// Order Placed: 20 August
-// Expected Delivery: 28 August
 // =====================================================
 
 const getExpectedDeliveryDate = () => {
   const date = new Date();
 
-  date.setDate(date.getDate() + 8);
+  date.setDate(
+    date.getDate() + 8
+  );
 
-  return date.toISOString().split("T")[0];
+  return date
+    .toISOString()
+    .split("T")[0];
 };
 
 // =====================================================
 // HELPER: FORMAT DATE ONLY
-// YYYY-MM-DD -> 28 August
 // =====================================================
 
-const formatDateOnly = (date) => {
+const formatDateOnly = (
+  date
+) => {
   if (!date) return null;
 
   const d = new Date(date);
 
-  return d.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-  });
+  return d.toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "long",
+    }
+  );
+};
+
+// =====================================================
+// HELPER: GET PRODUCT ID
+// =====================================================
+
+const getProductId = (
+  item
+) => {
+  return (
+    item.productId ??
+    item.product_id ??
+    item.id ??
+    null
+  );
 };
 
 // =====================================================
@@ -59,7 +79,10 @@ const formatDateOnly = (date) => {
 // POST /api/orders
 // =====================================================
 
-exports.placeOrder = async (req, res) => {
+exports.placeOrder = async (
+  req,
+  res
+) => {
   let connection;
 
   try {
@@ -67,12 +90,14 @@ exports.placeOrder = async (req, res) => {
     // USER
     // =================================================
 
-    const userId = getUserId(req);
+    const userId =
+      getUserId(req);
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "User authentication required",
+        message:
+          "User authentication required",
       });
     }
 
@@ -82,10 +107,6 @@ exports.placeOrder = async (req, res) => {
 
     const {
       items,
-      subtotal,
-      deliveryCharge,
-      totalAmount,
-      total,
       paymentMethod,
       addressId,
       address_id,
@@ -95,10 +116,14 @@ exports.placeOrder = async (req, res) => {
     // VALIDATE ITEMS
     // =================================================
 
-    if (!Array.isArray(items) || items.length === 0) {
+    if (
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Order items are required",
+        message:
+          "Order items are required",
       });
     }
 
@@ -110,23 +135,6 @@ exports.placeOrder = async (req, res) => {
       addressId ||
       address_id ||
       null;
-
-    // =================================================
-    // AMOUNTS
-    // =================================================
-
-    const finalSubtotal =
-      Number(subtotal || 0);
-
-    const finalDeliveryCharge =
-      Number(deliveryCharge || 0);
-
-    const finalTotalAmount =
-      Number(
-        totalAmount ??
-        total ??
-        finalSubtotal + finalDeliveryCharge
-      );
 
     // =================================================
     // PAYMENT
@@ -141,7 +149,9 @@ exports.placeOrder = async (req, res) => {
 
     const orderNumber =
       `AB-${Date.now()}-${Math.floor(
-        1000 + Math.random() * 9000
+        1000 +
+          Math.random() *
+            9000
       )}`;
 
     // =================================================
@@ -152,10 +162,11 @@ exports.placeOrder = async (req, res) => {
       getExpectedDeliveryDate();
 
     // =================================================
-    // DATABASE CONNECTION
+    // DATABASE
     // =================================================
 
-    connection = db.promise();
+    connection =
+      db.promise();
 
     // =================================================
     // START TRANSACTION
@@ -164,76 +175,23 @@ exports.placeOrder = async (req, res) => {
     await connection.beginTransaction();
 
     // =================================================
-    // CREATE ORDER
+    // COMBINE DUPLICATE PRODUCTS
     // =================================================
 
-    const orderId = await createOrder(
-      connection,
-      {
-        orderNumber,
-        userId,
+    const groupedItems =
+      new Map();
 
-        status: "Order Placed",
-
-        expectedDeliveryDate,
-
-        subtotal: finalSubtotal,
-
-        deliveryCharge:
-          finalDeliveryCharge,
-
-        totalAmount:
-          finalTotalAmount,
-
-        paymentMethod:
-          finalPaymentMethod,
-
-        addressId:
-          finalAddressId,
-      }
-    );
-
-    // =================================================
-    // CREATE ORDER ITEMS
-    // =================================================
-
-    for (const item of items) {
+    for (
+      const item of items
+    ) {
       const productId =
-        item.productId ??
-        item.product_id ??
-        item.id ??
-        null;
+        getProductId(item);
 
-      const productName =
-        item.productName ||
-        item.product_name ||
-        item.name ||
-        item.title ||
-        "Product";
-
-      const productImage =
-        item.productImage ||
-        item.product_image ||
-        item.image ||
-        item.imageUrl ||
-        item.image_url ||
-        null;
-
-      const price =
-        Number(
-          item.price ??
-          item.currentPrice ??
-          item.current_price ??
-          item.amount ??
-          0
-        );
-
-      const quantity =
-        Number(
-          item.quantity ??
+      const quantity = Number(
+        item.quantity ??
           item.qty ??
           1
-        );
+      );
 
       const size =
         item.size || null;
@@ -241,52 +199,335 @@ exports.placeOrder = async (req, res) => {
       const color =
         item.color || null;
 
-      // -----------------------------------------------
-      // BASIC VALIDATION
-      // -----------------------------------------------
-
       if (!productId) {
         throw new Error(
           "Product ID is required"
         );
       }
 
-      if (quantity <= 0) {
+      if (
+        !Number.isInteger(
+          quantity
+        ) ||
+        quantity <= 0
+      ) {
         throw new Error(
-          "Product quantity must be greater than 0"
+          "Product quantity must be a positive whole number"
         );
       }
 
-      if (price < 0) {
+      const variantKey =
+        `${productId}|${size || ""}|${color || ""}`;
+
+      if (
+        groupedItems.has(
+          variantKey
+        )
+      ) {
+        const existing =
+          groupedItems.get(
+            variantKey
+          );
+
+        existing.quantity +=
+          quantity;
+      } else {
+        groupedItems.set(
+          variantKey,
+          {
+            ...item,
+            productId,
+            quantity,
+            size,
+            color,
+          }
+        );
+      }
+    }
+
+    const finalItems =
+      Array.from(
+        groupedItems.values()
+      );
+
+    // =================================================
+    // VALIDATE PRODUCTS + STOCK
+    // =================================================
+
+    let calculatedSubtotal = 0;
+
+    const validatedItems = [];
+
+    for (
+      const item of finalItems
+    ) {
+      const productId =
+        item.productId;
+
+      const quantity =
+        Number(
+          item.quantity
+        );
+
+      // -----------------------------------------------
+      // LOCK PRODUCT ROW
+      // -----------------------------------------------
+
+      const [
+        productRows,
+      ] =
+        await connection.execute(
+          `
+            SELECT
+              id,
+              name,
+              description,
+              price,
+              image,
+              category,
+              stock
+            FROM products
+            WHERE id = ?
+            FOR UPDATE
+          `,
+          [productId]
+        );
+
+      // -----------------------------------------------
+      // PRODUCT NOT FOUND
+      // -----------------------------------------------
+
+      if (
+        productRows.length ===
+        0
+      ) {
         throw new Error(
-          "Product price cannot be negative"
+          `Product with ID ${productId} no longer exists.`
+        );
+      }
+
+      const product =
+        productRows[0];
+
+      // -----------------------------------------------
+      // STOCK
+      // -----------------------------------------------
+
+      const availableStock =
+        Number(
+          product.stock ?? 0
+        );
+
+      if (
+        availableStock <= 0
+      ) {
+        throw new Error(
+          `${product.name} is out of stock.`
+        );
+      }
+
+      if (
+        quantity >
+        availableStock
+      ) {
+        throw new Error(
+          `Only ${availableStock} item(s) of ${product.name} are available.`
         );
       }
 
       // -----------------------------------------------
-      // CREATE ITEM
+      // DATABASE PRICE
       // -----------------------------------------------
+
+      const databasePrice =
+        Number(
+          product.price ?? 0
+        );
+
+      if (
+        databasePrice < 0
+      ) {
+        throw new Error(
+          `Invalid price for ${product.name}.`
+        );
+      }
+
+      // -----------------------------------------------
+      // SUBTOTAL
+      // -----------------------------------------------
+
+      calculatedSubtotal +=
+        databasePrice *
+        quantity;
+
+      // -----------------------------------------------
+      // VALIDATED ITEM
+      // -----------------------------------------------
+
+      validatedItems.push({
+        orderItem: {
+          productId:
+            product.id,
+
+          productName:
+            product.name,
+
+          productImage:
+            product.image,
+
+          price:
+            databasePrice,
+
+          quantity,
+
+          size:
+            item.size || null,
+
+          color:
+            item.color || null,
+        },
+
+        productId:
+          product.id,
+
+        quantity,
+
+        availableStock,
+      });
+    }
+
+    // =================================================
+    // DELIVERY CHARGE
+    // =================================================
+
+    // IMPORTANT:
+    // Frontend delivery amount ko blindly trust nahi karna.
+    //
+    // Current project me checkout delivery ₹50 hai.
+    // Isliye backend bhi ₹50 calculate karega.
+    //
+    // Later pincode/location based shipping system
+    // add kar sakte hain.
+
+    const finalDeliveryCharge =
+      finalItems.length > 0
+        ? 50
+        : 0;
+
+    // =================================================
+    // FINAL TOTAL
+    // =================================================
+
+    const finalTotalAmount =
+      calculatedSubtotal +
+      finalDeliveryCharge;
+
+    // =================================================
+    // CREATE ORDER
+    // =================================================
+
+    const orderId =
+      await createOrder(
+        connection,
+        {
+          orderNumber,
+
+          userId,
+
+          status:
+            "Order Placed",
+
+          expectedDeliveryDate,
+
+          subtotal:
+            calculatedSubtotal,
+
+          deliveryCharge:
+            finalDeliveryCharge,
+
+          totalAmount:
+            finalTotalAmount,
+
+          paymentMethod:
+            finalPaymentMethod,
+
+          addressId:
+            finalAddressId,
+        }
+      );
+
+    // =================================================
+    // CREATE ORDER ITEMS
+    // =================================================
+
+    for (
+      const validatedItem of
+        validatedItems
+    ) {
+      const {
+        orderItem,
+        productId,
+        quantity,
+      } =
+        validatedItem;
 
       await createOrderItem(
         connection,
         {
           orderId,
 
-          productId,
+          productId:
+            orderItem.productId,
 
-          productName,
+          productName:
+            orderItem.productName,
 
-          productImage,
+          productImage:
+            orderItem.productImage,
 
-          price,
+          price:
+            orderItem.price,
 
-          quantity,
+          quantity:
+            orderItem.quantity,
 
-          size,
+          size:
+            orderItem.size,
 
-          color,
+          color:
+            orderItem.color,
         }
       );
+
+      // =================================================
+      // REDUCE STOCK
+      // =================================================
+
+      const [
+        stockUpdate,
+      ] =
+        await connection.execute(
+          `
+            UPDATE products
+            SET stock = stock - ?
+            WHERE id = ?
+            AND stock >= ?
+          `,
+          [
+            quantity,
+            productId,
+            quantity,
+          ]
+        );
+
+      if (
+        stockUpdate.affectedRows ===
+        0
+      ) {
+        throw new Error(
+          `Stock changed while placing the order for product ID ${productId}. Please try again.`
+        );
+      }
     }
 
     // =================================================
@@ -323,7 +564,8 @@ exports.placeOrder = async (req, res) => {
         "Order placed successfully",
 
       order: {
-        id: orderId,
+        id:
+          orderId,
 
         orderNumber:
           orderNumber,
@@ -341,7 +583,7 @@ exports.placeOrder = async (req, res) => {
           "Order Placed",
 
         subtotal:
-          finalSubtotal,
+          calculatedSubtotal,
 
         deliveryCharge:
           finalDeliveryCharge,
@@ -370,10 +612,6 @@ exports.placeOrder = async (req, res) => {
         address_id:
           finalAddressId,
 
-        // ---------------------------------------------
-        // EXPECTED DELIVERY
-        // ---------------------------------------------
-
         expectedDeliveryDate:
           expectedDeliveryDate,
 
@@ -394,7 +632,9 @@ exports.placeOrder = async (req, res) => {
     if (connection) {
       try {
         await connection.rollback();
-      } catch (rollbackError) {
+      } catch (
+        rollbackError
+      ) {
         console.error(
           "ROLLBACK ERROR:",
           rollbackError
@@ -407,12 +647,35 @@ exports.placeOrder = async (req, res) => {
       error
     );
 
+    // Product/stock validation error
+    if (
+      error.message &&
+      (
+        error.message.includes(
+          "out of stock"
+        ) ||
+        error.message.includes(
+          "available"
+        ) ||
+        error.message.includes(
+          "no longer exists"
+        ) ||
+        error.message.includes(
+          "Stock changed"
+        )
+      )
+    ) {
+      return res.status(409).json({
+        success: false,
+        message:
+          error.message,
+      });
+    }
+
     return res.status(500).json({
       success: false,
-
       message:
         "Failed to place order",
-
       error:
         error.message,
     });
@@ -429,38 +692,24 @@ exports.getMyOrders = async (
   res
 ) => {
   try {
-    // =================================================
-    // USER
-    // =================================================
-
     const userId =
       getUserId(req);
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-
         message:
           "User authentication required",
       });
     }
-
-    // =================================================
-    // GET ORDERS
-    // =================================================
 
     const orders =
       await getUserOrders(
         userId
       );
 
-    // =================================================
-    // RESPONSE
-    // =================================================
-
     return res.status(200).json({
       success: true,
-
       orders,
     });
   } catch (error) {
@@ -471,10 +720,8 @@ exports.getMyOrders = async (
 
     return res.status(500).json({
       success: false,
-
       message:
         "Failed to load orders",
-
       error:
         error.message,
     });
@@ -491,36 +738,21 @@ exports.getOrder = async (
   res
 ) => {
   try {
-    // =================================================
-    // USER
-    // =================================================
-
     const userId =
       getUserId(req);
 
-    // =================================================
-    // ORDER ID
-    // =================================================
-
     const orderId =
-      Number(req.params.id);
-
-    // =================================================
-    // VALIDATE USER
-    // =================================================
+      Number(
+        req.params.id
+      );
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-
         message:
           "User authentication required",
       });
     }
-
-    // =================================================
-    // VALIDATE ORDER
-    // =================================================
 
     if (
       !orderId ||
@@ -528,15 +760,10 @@ exports.getOrder = async (
     ) {
       return res.status(400).json({
         success: false,
-
         message:
           "Invalid order ID",
       });
     }
-
-    // =================================================
-    // GET ORDER
-    // =================================================
 
     const order =
       await getUserOrderById(
@@ -544,26 +771,16 @@ exports.getOrder = async (
         orderId
       );
 
-    // =================================================
-    // NOT FOUND
-    // =================================================
-
     if (!order) {
       return res.status(404).json({
         success: false,
-
         message:
           "Order not found",
       });
     }
 
-    // =================================================
-    // RESPONSE
-    // =================================================
-
     return res.status(200).json({
       success: true,
-
       order,
     });
   } catch (error) {
@@ -574,10 +791,8 @@ exports.getOrder = async (
 
     return res.status(500).json({
       success: false,
-
       message:
         "Failed to load order",
-
       error:
         error.message,
     });
@@ -596,45 +811,26 @@ exports.cancelOrder = async (
   let connection;
 
   try {
-    // =================================================
-    // USER
-    // =================================================
-
     const userId =
       getUserId(req);
 
-    // =================================================
-    // ORDER ID
-    // =================================================
-
     const orderId =
-      Number(req.params.id);
-
-    // =================================================
-    // REASON
-    // =================================================
+      Number(
+        req.params.id
+      );
 
     const reason =
       req.body?.reason ||
       req.body?.cancellationReason ||
       "Changed my mind";
 
-    // =================================================
-    // VALIDATE USER
-    // =================================================
-
     if (!userId) {
       return res.status(401).json({
         success: false,
-
         message:
           "User authentication required",
       });
     }
-
-    // =================================================
-    // VALIDATE ORDER
-    // =================================================
 
     if (
       !orderId ||
@@ -642,15 +838,10 @@ exports.cancelOrder = async (
     ) {
       return res.status(400).json({
         success: false,
-
         message:
           "Invalid order ID",
       });
     }
-
-    // =================================================
-    // GET ORDER
-    // =================================================
 
     const order =
       await getUserOrderById(
@@ -658,32 +849,19 @@ exports.cancelOrder = async (
         orderId
       );
 
-    // =================================================
-    // ORDER NOT FOUND
-    // =================================================
-
     if (!order) {
       return res.status(404).json({
         success: false,
-
         message:
           "Order not found",
       });
     }
-
-    // =================================================
-    // CANCELABLE STATUSES
-    // =================================================
 
     const cancelableStatuses = [
       "Order Placed",
       "Confirmed",
       "Packed",
     ];
-
-    // =================================================
-    // CANCEL RULE
-    // =================================================
 
     if (
       !cancelableStatuses.includes(
@@ -692,30 +870,19 @@ exports.cancelOrder = async (
     ) {
       return res.status(400).json({
         success: false,
-
         message:
           `Order cannot be cancelled when status is "${order.status}"`,
       });
     }
 
-    // =================================================
-    // DATABASE
-    // =================================================
-
     connection =
       db.promise();
 
-    // =================================================
-    // START TRANSACTION
-    // =================================================
-
     await connection.beginTransaction();
 
-    // =================================================
-    // UPDATE ORDER
-    // =================================================
-
-    const [orderUpdate] =
+    const [
+      orderUpdate,
+    ] =
       await connection.execute(
         `
           UPDATE orders
@@ -735,21 +902,14 @@ exports.cancelOrder = async (
         ]
       );
 
-    // =================================================
-    // VERIFY UPDATE
-    // =================================================
-
     if (
-      orderUpdate.affectedRows === 0
+      orderUpdate.affectedRows ===
+      0
     ) {
       throw new Error(
         "Order could not be cancelled"
       );
     }
-
-    // =================================================
-    // UPDATE ITEMS
-    // =================================================
 
     await connection.execute(
       `
@@ -761,10 +921,6 @@ exports.cancelOrder = async (
       `,
       [orderId]
     );
-
-    // =================================================
-    // STATUS HISTORY
-    // =================================================
 
     await createStatusHistory(
       connection,
@@ -779,15 +935,7 @@ exports.cancelOrder = async (
       }
     );
 
-    // =================================================
-    // COMMIT
-    // =================================================
-
     await connection.commit();
-
-    // =================================================
-    // RESPONSE
-    // =================================================
 
     return res.status(200).json({
       success: true,
@@ -804,14 +952,12 @@ exports.cancelOrder = async (
         reason,
     });
   } catch (error) {
-    // =================================================
-    // ROLLBACK
-    // =================================================
-
     if (connection) {
       try {
         await connection.rollback();
-      } catch (rollbackError) {
+      } catch (
+        rollbackError
+      ) {
         console.error(
           "ROLLBACK ERROR:",
           rollbackError
@@ -826,10 +972,8 @@ exports.cancelOrder = async (
 
     return res.status(500).json({
       success: false,
-
       message:
         "Failed to cancel order",
-
       error:
         error.message,
     });
@@ -841,222 +985,276 @@ exports.cancelOrder = async (
 // POST /api/orders/:orderId/items/:itemId/return
 // =====================================================
 
-exports.returnOrderItem = async (
-  req,
-  res
-) => {
-  let connection;
+exports.returnOrderItem =
+  async (
+    req,
+    res
+  ) => {
+    let connection;
 
-  try {
-    // =================================================
-    // USER
-    // =================================================
+    try {
+      const userId =
+        getUserId(req);
 
-    const userId =
-      getUserId(req);
+      const orderId =
+        Number(
+          req.params.orderId
+        );
 
-    // =================================================
-    // IDS
-    // =================================================
+      const itemId =
+        Number(
+          req.params.itemId
+        );
 
-    const orderId =
-      Number(
-        req.params.orderId
+      const reason =
+        req.body?.reason?.trim();
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "User authentication required",
+        });
+      }
+
+      if (
+        !orderId ||
+        Number.isNaN(orderId) ||
+        !itemId ||
+        Number.isNaN(itemId)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid order or item ID",
+        });
+      }
+
+      if (!reason) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Return reason is required",
+        });
+      }
+
+      connection =
+        db.promise();
+
+      await connection.beginTransaction();
+
+      const result =
+        await requestReturn(
+          connection,
+          {
+            userId,
+            orderId,
+            itemId,
+            reason,
+          }
+        );
+
+      await connection.commit();
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          "Return request submitted successfully",
+
+        returnRequest:
+          result,
+      });
+    } catch (error) {
+      if (connection) {
+        try {
+          await connection.rollback();
+        } catch (
+          rollbackError
+        ) {
+          console.error(
+            "ROLLBACK ERROR:",
+            rollbackError
+          );
+        }
+      }
+
+      console.error(
+        "RETURN ORDER ITEM ERROR:",
+        error
       );
 
-    const itemId =
-      Number(
-        req.params.itemId
-      );
-
-    // =================================================
-    // REASON
-    // =================================================
-
-    const reason =
-      req.body?.reason?.trim();
-
-    // =================================================
-    // VALIDATE USER
-    // =================================================
-
-    if (!userId) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
 
         message:
-          "User authentication required",
+          error.message ||
+          "Failed to request return",
       });
     }
+  };
 
-    // =================================================
-    // VALIDATE IDS
-    // =================================================
+// =====================================================
+// GET ALL ORDERS
+// =====================================================
+
+exports.getAllOrders =
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const [
+        orders,
+      ] =
+        await db
+          .promise()
+          .execute(
+            `
+              SELECT
+                o.id,
+                o.order_number,
+                o.user_id,
+                o.status,
+                o.total_amount,
+                o.payment_method,
+                o.payment_status,
+                o.created_at,
+                u.name AS customer_name,
+                u.email AS customer_email
+              FROM orders o
+              INNER JOIN users u
+                ON u.id = o.user_id
+              ORDER BY o.created_at DESC
+            `
+          );
+
+      return res.json({
+        success: true,
+        orders,
+      });
+    } catch (error) {
+      console.error(
+        "GET ALL ORDERS ERROR:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to load orders",
+      });
+    }
+  };
+
+// =====================================================
+// UPDATE ORDER STATUS
+// =====================================================
+
+exports.updateOrderStatus =
+  async (
+    req,
+    res
+  ) => {
+    const orderId =
+      Number(
+        req.params.id
+      );
+
+    const {
+      status,
+    } = req.body;
+
+    const allowedStatuses = [
+      "Order Placed",
+      "Confirmed",
+      "Processing",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+      "Cancelled",
+    ];
 
     if (
-      !orderId ||
-      Number.isNaN(orderId) ||
-      !itemId ||
-      Number.isNaN(itemId)
+      !Number.isInteger(
+        orderId
+      ) ||
+      !allowedStatuses.includes(
+        status
+      )
     ) {
       return res.status(400).json({
         success: false,
-
         message:
-          "Invalid order or item ID",
+          "Invalid order status",
       });
     }
 
-    // =================================================
-    // VALIDATE REASON
-    // =================================================
+    try {
+      const [
+        result,
+      ] =
+        await db
+          .promise()
+          .execute(
+            `
+              UPDATE orders
+              SET status = ?
+              WHERE id = ?
+            `,
+            [
+              status,
+              orderId,
+            ]
+          );
 
-    if (!reason) {
-      return res.status(400).json({
-        success: false,
+      if (
+        !result.affectedRows
+      ) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Order not found",
+        });
+      }
 
+      await db
+        .promise()
+        .execute(
+          `
+            INSERT INTO order_status_history
+            (
+              order_id,
+              status,
+              message
+            )
+            VALUES (?, ?, ?)
+          `,
+          [
+            orderId,
+            status,
+            `Order status updated to ${status} by admin.`,
+          ]
+        );
+
+      return res.json({
+        success: true,
         message:
-          "Return reason is required",
+          "Order status updated",
       });
-    }
-
-    // =================================================
-    // DATABASE CONNECTION
-    // =================================================
-
-    connection =
-      db.promise();
-
-    // =================================================
-    // START TRANSACTION
-    // =================================================
-
-    await connection.beginTransaction();
-
-    // =================================================
-    // REQUEST RETURN
-    // =================================================
-
-    const result =
-      await requestReturn(
-        connection,
-        {
-          userId,
-
-          orderId,
-
-          itemId,
-
-          reason,
-        }
+    } catch (error) {
+      console.error(
+        "UPDATE ORDER STATUS ERROR:",
+        error
       );
 
-    // =================================================
-    // COMMIT
-    // =================================================
-
-    await connection.commit();
-
-    // =================================================
-    // RESPONSE
-    // =================================================
-
-    return res.status(200).json({
-      success: true,
-
-      message:
-        "Return request submitted successfully",
-
-      returnRequest:
-        result,
-    });
-  } catch (error) {
-    // =================================================
-    // ROLLBACK
-    // =================================================
-
-    if (connection) {
-      try {
-        await connection.rollback();
-      } catch (rollbackError) {
-        console.error(
-          "ROLLBACK ERROR:",
-          rollbackError
-        );
-      }
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to update order status",
+      });
     }
-
-    console.error(
-      "RETURN ORDER ITEM ERROR:",
-      error
-    );
-
-    return res.status(400).json({
-      success: false,
-
-      message:
-        error.message ||
-        "Failed to request return",
-    });
-  }
-};
-
-exports.getAllOrders = async (req, res) => {
-  try {
-    const [orders] = await db.promise().execute(`
-      SELECT o.id, o.order_number, o.user_id, o.status,
-        o.total_amount, o.payment_method, o.payment_status,
-        o.created_at, u.name AS customer_name, u.email AS customer_email
-      FROM orders o
-      INNER JOIN users u ON u.id = o.user_id
-      ORDER BY o.created_at DESC
-    `);
-
-    return res.json({ success: true, orders });
-  } catch (error) {
-    console.error("GET ALL ORDERS ERROR:", error);
-    return res.status(500).json({ success: false, message: "Failed to load orders" });
-  }
-};
-
-exports.updateOrderStatus = async (req, res) => {
-  const orderId = Number(req.params.id);
-  const { status } = req.body;
-  const allowedStatuses = [
-    "Order Placed",
-    "Confirmed",
-    "Processing",
-    "Shipped",
-    "Out for Delivery",
-    "Delivered",
-    "Cancelled",
-  ];
-
-  if (!Number.isInteger(orderId) || !allowedStatuses.includes(status)) {
-    return res.status(400).json({ success: false, message: "Invalid order status" });
-  }
-
-  try {
-    const [result] = await db.promise().execute(
-      "UPDATE orders SET status = ? WHERE id = ?",
-      [status, orderId],
-    );
-
-    if (!result.affectedRows) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
-    await db.promise().execute(
-      "INSERT INTO order_status_history (order_id, status, message) VALUES (?, ?, ?)",
-      [orderId, status, `Order status updated to ${status} by admin.`],
-    );
-
-    return res.json({ success: true, message: "Order status updated" });
-  } catch (error) {
-    console.error("UPDATE ORDER STATUS ERROR:", error);
-    return res.status(500).json({ success: false, message: "Failed to update order status" });
-  }
-};
+  };
 
 // =====================================================
 // EXPORTS

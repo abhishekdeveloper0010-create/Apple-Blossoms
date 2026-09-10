@@ -125,8 +125,24 @@ function Header() {
 
   const countCart = () => {
     try {
+      const savedUser = JSON.parse(
+        localStorage.getItem("user") || "null"
+      );
+
+      const userId =
+        savedUser?.id ||
+        savedUser?.user_id ||
+        savedUser?.userId;
+
+      if (!userId) {
+        setCartCount(0);
+        return;
+      }
+
       const savedCart =
-        JSON.parse(localStorage.getItem("cart")) || [];
+        JSON.parse(
+          localStorage.getItem(`cart_user_${userId}`) || "[]"
+        ) || [];
 
       const totalItems = savedCart.reduce(
         (sum, item) =>
@@ -155,6 +171,7 @@ function Header() {
     const handleAuthChanged = () => {
       syncUser();
       countWishlist();
+      countCart();
     };
 
     // Wishlist change
