@@ -1041,6 +1041,39 @@ function Checkout() {
 
         setLoading(true);
 
+        const addressResponse = await fetch(
+          `${API_URL}/addresses`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              full_name: shipping.name.trim(),
+              email: shipping.email.trim(),
+              phone: shipping.phone.trim(),
+              address_line: shipping.address.trim(),
+              city: shipping.city.trim(),
+              state: shipping.state.trim(),
+              pincode: shipping.pin.trim(),
+              country: "India",
+              is_default: false,
+            }),
+          },
+        );
+
+        const addressResult = await addressResponse.json();
+
+        if (!addressResponse.ok || !addressResult.success || !addressResult.addressId) {
+          throw new Error(
+            addressResult.message || "Unable to save shipping address.",
+          );
+        }
+
+        orderData.addressId = addressResult.addressId;
+        orderData.address_id = addressResult.addressId;
+
         const response =
           await fetch(
             `${API_URL}/orders`,

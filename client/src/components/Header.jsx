@@ -30,6 +30,15 @@ function Header() {
     "http://localhost:4000/api";
 
   // =====================================================
+  // ADMIN CHECK
+  // Admin Dashboard sirf admin role wale user ko dikhega
+  // =====================================================
+
+  const isAdmin =
+    user?.role &&
+    String(user.role).toLowerCase() === "admin";
+
+  // =====================================================
   // LOAD SEARCH FROM URL
   // =====================================================
 
@@ -476,6 +485,33 @@ function Header() {
 
                     <hr className="my-2 border-slate-200" />
 
+                    {/* ADMIN DASHBOARD */}
+                    {/* Sirf admin ko show hoga */}
+
+                    {isAdmin && (
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
+                          className="
+                           block
+                        rounded-xl
+                        px-3
+                        py-2
+                        text-sm
+                        text-slate-700
+                        hover:bg-sky-50
+                          "
+                        >
+                          Admin Dashboard
+                        </Link>
+
+                        <hr className="my-2 border-slate-200" />
+                      </>
+                    )}
+
                     {/* PROFILE */}
 
                     <Link
@@ -764,6 +800,28 @@ function Header() {
                     </p>
                   )}
                 </div>
+
+                {/* ADMIN DASHBOARD */}
+                {/* Sirf admin ko show hoga */}
+
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={closeMobileMenu}
+                    className="
+                      rounded-xl
+                      bg-sky-600
+                      px-4
+                      py-3
+                      font-semibold
+                      text-white
+                      transition
+                      hover:bg-sky-700
+                    "
+                  >
+                    🏠 Admin Dashboard
+                  </Link>
+                )}
 
                 {/* MY PROFILE */}
 

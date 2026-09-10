@@ -10,6 +10,10 @@ import {
   FaIdCard,
 } from "react-icons/fa";
 
+const API_URL =
+  import.meta.env.VITE_SERVER_API_URL ||
+  "http://localhost:4000/api";
+
 function Footer() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -45,7 +49,7 @@ function Footer() {
       setLoading(true);
 
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_API_URL}/newsletter/subscribe`,
+        `${API_URL}/newsletter/subscribe`,
         {
           method: "POST",
 

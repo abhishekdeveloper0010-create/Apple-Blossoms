@@ -18,7 +18,7 @@ function ShopTheLook() {
   return (
     <>
       {/* Top Space */}
-      <div className="bg-white h-2"></div>
+      <div className="bg-white py-2"></div>
 
       <section className="bg-[#d9f0fb] pb-10 sm:pb-12 lg:pb-14">
         <div

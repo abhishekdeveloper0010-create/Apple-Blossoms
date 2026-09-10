@@ -1,27 +1,51 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+// =====================================================
+// COMMON COMPONENTS
+// =====================================================
+
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
+// =====================================================
+// PUBLIC PAGES
+// =====================================================
+
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import ProductDetail from "./pages/ProductDetail";
+
+// =====================================================
+// AUTH PAGES
+// =====================================================
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+// =====================================================
+// USER PROTECTED PAGES
+// =====================================================
+
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import OrderTracking from "./pages/OrderTracking";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import ProductDetail from "./pages/ProductDetail";
 import Profile from "./pages/Profile";
 
+// =====================================================
+// ADMIN PAGES
+// =====================================================
+
+import Admin from "./pages/admin/Admin";
+import AddProduct from "./pages/admin/AddProduct";
+import OrderManagement from "./pages/admin/OrderManagement";
+import ProductInventory from "./pages/admin/ProductInventory";
 
 // =====================================================
 // CHECK TOKEN
@@ -30,26 +54,34 @@ import Profile from "./pages/Profile";
 const isTokenValid = () => {
   const token = localStorage.getItem("token");
 
+  // No token
   if (!token) {
     return false;
   }
 
   try {
+    // =================================================
+    // JWT FORMAT CHECK
+    // =================================================
+
     const parts = token.split(".");
 
     if (parts.length !== 3) {
       return false;
     }
 
+    // =================================================
+    // DECODE JWT PAYLOAD
+    // =================================================
+
     const payload = JSON.parse(
-      atob(
-        parts[1]
-          .replace(/-/g, "+")
-          .replace(/_/g, "/")
-      )
+      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
     );
 
-    // JWT expiry check
+    // =================================================
+    // JWT EXPIRY CHECK
+    // =================================================
+
     if (payload.exp && payload.exp * 1000 < Date.now()) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -69,7 +101,23 @@ const isTokenValid = () => {
 };
 
 // =====================================================
+// GET STORED USER
+// =====================================================
+
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch (error) {
+    console.error("GET USER ERROR:", error);
+
+    return null;
+  }
+};
+
+// =====================================================
 // PROTECTED ROUTE
+// =====================================================
+// Login required
 // =====================================================
 
 function ProtectedRoute({ children }) {
@@ -84,7 +132,8 @@ function ProtectedRoute({ children }) {
 
 // =====================================================
 // PUBLIC ONLY ROUTE
-// Login/Register page logged-in user ke liye nahi
+// =====================================================
+// Logged-in user login/register page par nahi ja sakta
 // =====================================================
 
 function PublicOnlyRoute({ children }) {
@@ -98,16 +147,56 @@ function PublicOnlyRoute({ children }) {
 }
 
 // =====================================================
+// ADMIN ROUTE
+// =====================================================
+// Sirf admin user access kar sakta hai
+// =====================================================
+
+function AdminRoute({ children }) {
+  // ===================================================
+  // LOGIN CHECK
+  // ===================================================
+
+  if (!isTokenValid()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // ===================================================
+  // GET USER
+  // ===================================================
+
+  const user = getStoredUser();
+
+  // ===================================================
+  // ADMIN ROLE CHECK
+  // ===================================================
+
+  if (user?.role === "admin") {
+    return children;
+  }
+
+  // Normal user ko home par bhejo
+  return <Navigate to="/" replace />;
+}
+
+// =====================================================
 // APP
 // =====================================================
 
 function App() {
   return (
     <BrowserRouter>
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
       <Header />
 
-      <Routes>
+      {/* =================================================
+          ROUTES
+      ================================================= */}
 
+      <Routes>
         {/* =================================================
             PUBLIC ROUTES
         ================================================= */}
@@ -116,10 +205,7 @@ function App() {
 
         <Route path="/shop" element={<Shop />} />
 
-        <Route
-          path="/product/:id"
-          element={<ProductDetail />}
-        />
+        <Route path="/product/:id" element={<ProductDetail />} />
 
         <Route path="/about" element={<About />} />
 
@@ -159,23 +245,19 @@ function App() {
             FORGOT PASSWORD
         ================================================= */}
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* =================================================
             RESET PASSWORD
         ================================================= */}
 
-        <Route
-          path="/reset-password/:token"
-          element={<ResetPassword />}
-        />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* =================================================
-            PROTECTED ROUTES
+            USER PROTECTED ROUTES
         ================================================= */}
+
+        {/* CART */}
 
         <Route
           path="/cart"
@@ -186,6 +268,8 @@ function App() {
           }
         />
 
+        {/* CHECKOUT */}
+
         <Route
           path="/checkout"
           element={
@@ -194,6 +278,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* WISHLIST */}
 
         <Route
           path="/wishlist"
@@ -204,6 +290,8 @@ function App() {
           }
         />
 
+        {/* ORDER TRACKING */}
+
         <Route
           path="/order-tracking"
           element={
@@ -212,6 +300,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* PROFILE */}
 
         <Route
           path="/profile"
@@ -223,19 +313,75 @@ function App() {
         />
 
         {/* =================================================
-            FALLBACK
+            ADMIN DASHBOARD
         ================================================= */}
 
         <Route
-          path="*"
-          element={<Navigate to="/" replace />}
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
+          }
         />
 
+        {/* =================================================
+            ADMIN - ADD PRODUCT
+        ================================================= */}
+
+      <Route
+  path="/admin/products/add"
+  element={
+    <AdminRoute>
+      <AddProduct />
+    </AdminRoute>
+  }
+/>
+
+        {/* =================================================
+            ADMIN - PRODUCT INVENTORY
+        ================================================= */}
+
+        <Route
+          path="/admin/products"
+          element={
+            <AdminRoute>
+              <ProductInventory />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+            ADMIN - ORDER MANAGEMENT
+        ================================================= */}
+
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminRoute>
+              <OrderManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+            FALLBACK ROUTE
+        ================================================= */}
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* =================================================
+          FOOTER
+      ================================================= */}
 
       <Footer />
     </BrowserRouter>
   );
 }
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 export default App;

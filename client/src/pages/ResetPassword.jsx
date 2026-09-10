@@ -3,6 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
+const API_URL =
+  import.meta.env.VITE_SERVER_API_URL ||
+  "http://localhost:4000/api";
+
 function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -43,7 +47,7 @@ function ResetPassword() {
       setLoading(true);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_API_URL}/auth/reset-password/${token}`,
+        `${API_URL}/auth/reset-password/${token}`,
         {
           password,
         },

@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+const API_URL =
+  import.meta.env.VITE_SERVER_API_URL ||
+  "http://localhost:4000/api";
+
 function Contact() {
   const [formData, setFormData] = useState({
     name: "",
@@ -99,7 +103,7 @@ function Contact() {
       // =========================
 
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_API_URL}/contact`,
+        `${API_URL}/contact`,
         {
           method: "POST",
 
