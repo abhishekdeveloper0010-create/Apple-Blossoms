@@ -39,7 +39,7 @@ CREATE TABLE `addresses` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,7 +48,7 @@ CREATE TABLE `addresses` (
 
 LOCK TABLES `addresses` WRITE;
 /*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
-INSERT INTO `addresses` VALUES (1,12,'yonit','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',1,'2026-08-18 04:55:15','2026-08-18 04:55:15'),(2,12,'yonit','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:07:17','2026-08-18 05:07:17'),(3,12,'Abhishek','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:13:18','2026-08-18 05:13:18'),(4,12,'Abhishek','0000000000','abhishekkumar97831@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:45:40','2026-08-18 05:45:40'),(5,12,'yonit','0000000000','yonit@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:59:24','2026-08-18 05:59:24'),(6,12,'Abhishek','0000000000','abhishekkumar97831@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 06:48:58','2026-08-18 06:48:58'),(7,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',1,'2026-08-18 07:24:22','2026-08-18 07:24:22'),(8,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:51:24','2026-08-18 09:51:24'),(9,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:51:52','2026-08-18 09:51:52'),(10,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:54:52','2026-08-18 09:54:52'),(11,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 10:25:58','2026-08-18 10:25:58'),(12,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 10:32:46','2026-08-18 10:32:46'),(13,14,'Amit','0000011111','amit@gmail.com','pnjab','Abohar','Punjab','111111','India',0,'2026-08-22 04:58:45','2026-08-22 04:58:45');
+INSERT INTO `addresses` VALUES (1,12,'yonit','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',1,'2026-08-18 04:55:15','2026-08-18 04:55:15'),(2,12,'yonit','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:07:17','2026-08-18 05:07:17'),(3,12,'Abhishek','0000000000',NULL,'Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:13:18','2026-08-18 05:13:18'),(4,12,'Abhishek','0000000000','abhishekkumar97831@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:45:40','2026-08-18 05:45:40'),(5,12,'yonit','0000000000','yonit@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 05:59:24','2026-08-18 05:59:24'),(6,12,'Abhishek','0000000000','abhishekkumar97831@gmail.com','Rajsthan','Lalghar','ganganager','152128','India',0,'2026-08-18 06:48:58','2026-08-18 06:48:58'),(7,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',1,'2026-08-18 07:24:22','2026-08-18 07:24:22'),(8,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:51:24','2026-08-18 09:51:24'),(9,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:51:52','2026-08-18 09:51:52'),(10,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 09:54:52','2026-08-18 09:54:52'),(11,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 10:25:58','2026-08-18 10:25:58'),(12,8,'Abhishek','1234567890','abc@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-08-18 10:32:46','2026-08-18 10:32:46'),(13,14,'Amit','0000011111','amit@gmail.com','pnjab','Abohar','Punjab','111111','India',0,'2026-08-22 04:58:45','2026-08-22 04:58:45'),(14,15,'sunilkumar','4444444444','sunil@gmail.com','street no 12 sustand left hand walk','Abohar','Punjab','141414','India',0,'2026-09-04 04:42:13','2026-09-04 04:42:13'),(15,7,'Abhishek','08619141847','abhishekkumar97831@gmail.com','pnjab','Abohar','Punjab','152128','India',0,'2026-09-10 03:44:28','2026-09-10 03:44:28');
 /*!40000 ALTER TABLE `addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -91,7 +91,7 @@ CREATE TABLE `newsletter_subscribers` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +100,7 @@ CREATE TABLE `newsletter_subscribers` (
 
 LOCK TABLES `newsletter_subscribers` WRITE;
 /*!40000 ALTER TABLE `newsletter_subscribers` DISABLE KEYS */;
-INSERT INTO `newsletter_subscribers` VALUES (2,'abhishekkumar97831@gmail.com','2026-08-15 12:18:35'),(3,'rahualsgn2022@gmail.com','2026-08-15 12:21:04'),(4,'singhkaramsar@gmail.com','2026-08-16 03:33:54');
+INSERT INTO `newsletter_subscribers` VALUES (2,'abhishekkumar97831@gmail.com','2026-08-15 12:18:35'),(3,'rahualsgn2022@gmail.com','2026-08-15 12:21:04'),(4,'singhkaramsar@gmail.com','2026-08-16 03:33:54'),(5,'sunil@gmail.com','2026-09-06 05:38:30');
 /*!40000 ALTER TABLE `newsletter_subscribers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -135,7 +135,7 @@ CREATE TABLE `order_items` (
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +144,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,19,'Golden Bangles','bangles-1.png',599.00,0.00,0.00,1,'2-2',NULL,'Cancelled',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-18 10:32:46'),(9,9,21,'Women Casual Shoes','shoes-1.png',1299.00,0.00,0.00,1,'6',NULL,'Cancelled',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-24 07:10:45'),(10,10,18,'Premium Beauty Kit','beauty-2.png',1499.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-28 14:50:51'),(11,11,23,'Comfortable Slippers','slippers-1.png',499.00,0.00,0.00,1,'6',NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-02 12:08:43');
+INSERT INTO `order_items` VALUES (1,1,19,'Golden Bangles','bangles-1.png',599.00,0.00,0.00,1,'2-2',NULL,'Cancelled',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-18 10:32:46'),(9,9,21,'Women Casual Shoes','shoes-1.png',1299.00,0.00,0.00,1,'6',NULL,'Cancelled',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-24 07:10:45'),(10,10,18,'Premium Beauty Kit','beauty-2.png',1499.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-08-28 14:50:51'),(11,11,23,'Comfortable Slippers','slippers-1.png',499.00,0.00,0.00,1,'6',NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-02 12:08:43'),(12,12,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:26:35'),(13,13,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:27:18'),(14,14,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:19'),(15,15,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:19'),(16,16,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:20'),(17,17,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:20'),(18,18,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:20'),(19,19,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:28:20'),(20,20,17,'Beauty Makeup Kit','beauty-1.png',799.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:32:59'),(21,21,21,'Women Casual Shoes','shoes-1.png',1299.00,0.00,0.00,1,'6',NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:37:31'),(22,22,18,'Premium Beauty Kit','beauty-2.png',1499.00,0.00,0.00,1,NULL,NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-04 04:42:13'),(23,23,24,'Fashion Slippers','slippers-2.png',699.00,0.00,0.00,1,'6',NULL,'Order Placed',0,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-10 03:44:28');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -164,7 +164,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `order_status_history_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -173,7 +173,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'Order Placed','Your order has been placed successfully.','2026-08-18 10:32:46'),(2,1,'Cancelled','Order cancelled by customer. Reason: chang my mind','2026-08-18 11:59:41'),(11,9,'Order Placed','Your order has been successfully placed.','2026-08-24 07:10:45'),(12,9,'Cancelled','Order cancelled by customer. Reason: qulaty is very bead','2026-08-24 07:13:12'),(13,10,'Order Placed','Your order has been successfully placed.','2026-08-28 14:50:51'),(14,11,'Order Placed','Your order has been successfully placed.','2026-09-02 12:08:43');
+INSERT INTO `order_status_history` VALUES (1,1,'Order Placed','Your order has been placed successfully.','2026-08-18 10:32:46'),(2,1,'Cancelled','Order cancelled by customer. Reason: chang my mind','2026-08-18 11:59:41'),(11,9,'Order Placed','Your order has been successfully placed.','2026-08-24 07:10:45'),(12,9,'Cancelled','Order cancelled by customer. Reason: qulaty is very bead','2026-08-24 07:13:12'),(13,10,'Order Placed','Your order has been successfully placed.','2026-08-28 14:50:51'),(14,11,'Order Placed','Your order has been successfully placed.','2026-09-02 12:08:43'),(15,12,'Order Placed','Your order has been successfully placed.','2026-09-04 04:26:35'),(16,13,'Order Placed','Your order has been successfully placed.','2026-09-04 04:27:18'),(17,14,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:19'),(18,15,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:19'),(19,16,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:20'),(20,17,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:20'),(21,18,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:20'),(22,19,'Order Placed','Your order has been successfully placed.','2026-09-04 04:28:20'),(23,20,'Order Placed','Your order has been successfully placed.','2026-09-04 04:32:59'),(24,21,'Order Placed','Your order has been successfully placed.','2026-09-04 04:37:31'),(25,22,'Order Placed','Your order has been successfully placed.','2026-09-04 04:42:13'),(26,22,'Confirmed','Order status updated to Confirmed by admin.','2026-09-07 12:08:51'),(27,22,'Processing','Order status updated to Processing by admin.','2026-09-07 12:09:09'),(28,17,'Confirmed','Order status updated to Confirmed by admin.','2026-09-09 13:32:46'),(29,10,'Cancelled','Order status updated to Cancelled by admin.','2026-09-09 13:33:03'),(30,13,'Cancelled','Order status updated to Cancelled by admin.','2026-09-09 13:33:07'),(31,23,'Order Placed','Your order has been successfully placed.','2026-09-10 03:44:28'),(32,23,'Confirmed','Order status updated to Confirmed by admin.','2026-09-10 03:44:50'),(33,23,'Delivered','Order status updated to Delivered by admin.','2026-09-10 03:45:32');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -209,7 +209,7 @@ CREATE TABLE `orders` (
   KEY `fk_orders_address` (`address_id`),
   CONSTRAINT `fk_orders_address` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`) ON DELETE SET NULL,
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -218,7 +218,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,'AB-1787049166143-63',8,'Cancelled',NULL,599.00,0.00,50.00,649.00,'COD','pending',NULL,NULL,12,'2026-08-18 10:32:46','2026-08-18 11:59:41','chang my mind','2026-08-18 17:29:41'),(9,'AB-1787555445755-9156',14,'Cancelled','2026-09-01',1299.00,0.00,50.00,1349.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-08-24 07:10:45','2026-08-24 07:13:12','qulaty is very bead','2026-08-24 12:43:12'),(10,'AB-1787928651011-8287',14,'Order Placed','2026-09-05',1499.00,0.00,50.00,1549.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-08-28 14:50:51','2026-08-28 14:50:51',NULL,NULL),(11,'AB-1788350923159-9943',8,'Order Placed','2026-09-10',499.00,0.00,50.00,549.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-09-02 12:08:43','2026-09-02 12:08:43',NULL,NULL);
+INSERT INTO `orders` VALUES (1,'AB-1787049166143-63',8,'Cancelled',NULL,599.00,0.00,50.00,649.00,'COD','pending',NULL,NULL,12,'2026-08-18 10:32:46','2026-08-18 11:59:41','chang my mind','2026-08-18 17:29:41'),(9,'AB-1787555445755-9156',14,'Cancelled','2026-09-01',1299.00,0.00,50.00,1349.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-08-24 07:10:45','2026-08-24 07:13:12','qulaty is very bead','2026-08-24 12:43:12'),(10,'AB-1787928651011-8287',14,'Cancelled','2026-09-05',1499.00,0.00,50.00,1549.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-08-28 14:50:51','2026-09-09 13:33:03',NULL,NULL),(11,'AB-1788350923159-9943',8,'Order Placed','2026-09-10',499.00,0.00,50.00,549.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-09-02 12:08:43','2026-09-02 12:08:43',NULL,NULL),(12,'AB-1788495995578-4137',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:26:35','2026-09-04 04:26:35',NULL,NULL),(13,'AB-1788496038966-7672',8,'Cancelled','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:27:18','2026-09-09 13:33:07',NULL,NULL),(14,'AB-1788496099155-5857',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:19','2026-09-04 04:28:19',NULL,NULL),(15,'AB-1788496099911-1075',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:19','2026-09-04 04:28:19',NULL,NULL),(16,'AB-1788496100377-2785',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:20','2026-09-04 04:28:20',NULL,NULL),(17,'AB-1788496100582-3470',8,'Confirmed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:20','2026-09-09 13:32:46',NULL,NULL),(18,'AB-1788496100787-5664',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:20','2026-09-04 04:28:20',NULL,NULL),(19,'AB-1788496100992-2301',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'UPI','pending',NULL,NULL,NULL,'2026-09-04 04:28:20','2026-09-04 04:28:20',NULL,NULL),(20,'AB-1788496379408-1915',8,'Order Placed','2026-09-12',799.00,0.00,50.00,849.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-09-04 04:32:59','2026-09-04 04:32:59',NULL,NULL),(21,'AB-1788496651058-3985',15,'Order Placed','2026-09-12',1299.00,0.00,50.00,1349.00,'Cash on Delivery','pending',NULL,NULL,NULL,'2026-09-04 04:37:31','2026-09-04 04:37:31',NULL,NULL),(22,'AB-1788496933164-1329',15,'Processing','2026-09-12',1499.00,0.00,50.00,1549.00,'Cash on Delivery','pending',NULL,NULL,14,'2026-09-04 04:42:13','2026-09-07 12:09:09',NULL,NULL),(23,'AB-1789011868160-6398',7,'Delivered','2026-09-18',699.00,0.00,50.00,749.00,'Cash on Delivery','pending',NULL,NULL,15,'2026-09-10 03:44:28','2026-09-10 03:45:32',NULL,NULL);
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -261,6 +261,41 @@ LOCK TABLES `payments` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `product_reviews`
+--
+
+DROP TABLE IF EXISTS `product_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_reviews` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rating` int NOT NULL,
+  `review` text,
+  `status` enum('approved','pending','rejected') DEFAULT 'approved',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_product` (`product_id`,`user_id`),
+  KEY `fk_review_user` (`user_id`),
+  CONSTRAINT `fk_review_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_review_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_review_rating` CHECK (((`rating` >= 1) and (`rating` <= 5)))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_reviews`
+--
+
+LOCK TABLES `product_reviews` WRITE;
+/*!40000 ALTER TABLE `product_reviews` DISABLE KEYS */;
+INSERT INTO `product_reviews` VALUES (2,24,7,5,'looking verry nice','approved','2026-09-10 03:46:10','2026-09-10 03:55:28');
+/*!40000 ALTER TABLE `product_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `products`
 --
 
@@ -285,7 +320,7 @@ CREATE TABLE `products` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `category_id` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -294,7 +329,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'Classic Cotton Shirt','Comfortable cotton shirt for everyday wear',999.00,1499.00,'33% OFF',40.00,20.00,0,0,'shirts-1.png','Shirts','S,M,L,XL',50,'2026-08-23 07:45:56',1),(2,'Premium Women Shirt','Stylish premium shirt for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shirts-2.png','Shirts','S,M,L,XL',35,'2026-08-23 07:45:56',1),(3,'Floral Summer Dress','Beautiful floral dress perfect for summer',1499.00,2199.00,'32% OFF',60.00,30.00,0,0,'dress-1.png','Dresses','S,M,L,XL',30,'2026-08-23 07:45:56',2),(4,'Party Wear Dress','Elegant party wear dress',1999.00,2999.00,'33% OFF',70.00,35.00,0,0,'dress-2.png','Dresses','S,M,L,XL',20,'2026-08-23 07:45:56',2),(5,'Beauty Makeup Kit','Complete makeup kit for daily use',799.00,1199.00,'33% OFF',35.00,20.00,0,0,'beauty-1.png','Beauty',NULL,40,'2026-08-23 07:45:56',3),(6,'Premium Beauty Kit','Premium beauty products collection',1499.00,1999.00,'25% OFF',50.00,25.00,0,0,'beauty-2.png','Beauty',NULL,25,'2026-08-23 07:45:56',3),(7,'Golden Bangles','Beautiful traditional golden bangles',599.00,899.00,'33% OFF',30.00,15.00,0,0,'bangles-1.png','Bangles','2-2, 2-4, 2-6',50,'2026-08-23 07:45:56',4),(8,'Designer Bangles Set','Designer bangles set for special occasions',899.00,1299.00,'31% OFF',35.00,20.00,0,0,'bangles-2.png','Bangles','2-2, 2-4, 2-6',30,'2026-08-23 07:45:56',4),(9,'Women Casual Shoes','Comfortable casual shoes for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shoes-1.png','Shoes','6,7,8,9',25,'2026-08-23 07:45:56',5),(10,'Party Wear Shoes','Stylish shoes for parties and events',1799.00,2499.00,'28% OFF',60.00,30.00,0,0,'shoes-2.png','Shoes','6,7,8,9',20,'2026-08-23 07:45:56',5),(11,'Comfortable Slippers','Soft and comfortable slippers',499.00,699.00,'29% OFF',30.00,15.00,0,0,'slippers-1.png','Slippers','6,7,8,9',60,'2026-08-23 07:45:56',6),(12,'Fashion Slippers','Trendy slippers for everyday use',699.00,999.00,'30% OFF',35.00,20.00,0,0,'slippers-2.png','Slippers','6,7,8,9',40,'2026-08-23 07:45:56',6),(13,'Classic Cotton Shirt','Comfortable cotton shirt for everyday wear',999.00,1499.00,'33% OFF',40.00,20.00,0,0,'shirts-1.png','Shirts','S,M,L,XL',50,'2026-08-23 07:47:16',7),(14,'Premium Women Shirt','Stylish premium shirt for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shirts-2.png','Shirts','S,M,L,XL',35,'2026-08-23 07:47:16',7),(15,'Floral Summer Dress','Beautiful floral dress perfect for summer',1499.00,2199.00,'32% OFF',0.00,30.00,0,0,'dress-1.png','Dresses','S,M,L,XL',30,'2026-08-23 07:47:16',8),(16,'Party Wear Dress','Elegant party wear dress',1999.00,2999.00,'33% OFF',70.00,35.00,0,0,'dress-2.png','Dresses','S,M,L,XL',20,'2026-08-23 07:47:16',8),(17,'Beauty Makeup Kit','Complete makeup kit for daily use',799.00,999.00,'33% OFF',35.00,20.00,0,0,'beauty-1.png','Beauty',NULL,40,'2026-08-23 07:47:16',9),(18,'Premium Beauty Kit','Premium beauty products collection',1499.00,1999.00,'25% OFF',50.00,25.00,0,0,'beauty-2.png','Beauty',NULL,25,'2026-08-23 07:47:16',9),(19,'Golden Bangles','Beautiful traditional golden bangles',599.00,899.00,'33% OFF',30.00,15.00,0,0,'bangles-1.png','Bangles','2-2, 2-4, 2-6',50,'2026-08-23 07:47:16',10),(20,'Designer Bangles Set','Designer bangles set for special occasions',899.00,1299.00,'31% OFF',35.00,20.00,0,0,'bangles-2.png','Bangles','2-2, 2-4, 2-6',30,'2026-08-23 07:47:16',10),(21,'Women Casual Shoes','Comfortable casual shoes for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shoes-1.png','Shoes','6,7,8,9',25,'2026-08-23 07:47:16',11),(22,'Party Wear Shoes','Stylish shoes for parties and events',1799.00,2499.00,'28% OFF',60.00,30.00,0,0,'shoes-2.png','Shoes','6,7,8,9',20,'2026-08-23 07:47:16',11),(23,'Comfortable Slippers','Soft and comfortable slippers',499.00,699.00,'29% OFF',30.00,15.00,0,0,'slippers-1.png','Slippers','6,7,8,9',60,'2026-08-23 07:47:16',12),(24,'Fashion Slippers','Trendy slippers for everyday use',699.00,999.00,'30% OFF',35.00,20.00,0,0,'slippers-2.png','Slippers','6,7,8,9',40,'2026-08-23 07:47:16',12);
+INSERT INTO `products` VALUES (1,'Classic Cotton Shirt','Comfortable cotton shirt for everyday wear',999.00,1499.00,'33% OFF',40.00,20.00,0,0,'shirts-1.png','Shirts','S,M,L,XL',50,'2026-08-23 07:45:56',1),(2,'Premium Women Shirt','Stylish premium shirt for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shirts-2.png','Shirts','S,M,L,XL',35,'2026-08-23 07:45:56',1),(3,'Floral Summer Dress','Beautiful floral dress perfect for summer',1499.00,2199.00,'32% OFF',60.00,30.00,0,0,'dress-1.png','Dresses','S,M,L,XL',30,'2026-08-23 07:45:56',2),(4,'Party Wear Dress','Elegant party wear dress',1999.00,2999.00,'33% OFF',70.00,35.00,0,0,'dress-2.png','Dresses','S,M,L,XL',20,'2026-08-23 07:45:56',2),(5,'Beauty Makeup Kit','Complete makeup kit for daily use',799.00,1199.00,'33% OFF',35.00,20.00,0,0,'beauty-1.png','Beauty',NULL,40,'2026-08-23 07:45:56',3),(6,'Premium Beauty Kit','Premium beauty products collection',1499.00,1999.00,'25% OFF',50.00,25.00,0,0,'beauty-2.png','Beauty',NULL,25,'2026-08-23 07:45:56',3),(7,'Golden Bangles','Beautiful traditional golden bangles',599.00,899.00,'33% OFF',30.00,15.00,0,0,'bangles-1.png','Bangles','2-2, 2-4, 2-6',50,'2026-08-23 07:45:56',4),(8,'Designer Bangles Set','Designer bangles set for special occasions',899.00,1299.00,'31% OFF',35.00,20.00,0,0,'bangles-2.png','Bangles','2-2, 2-4, 2-6',30,'2026-08-23 07:45:56',4),(9,'Women Casual Shoes','Comfortable casual shoes for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shoes-1.png','Shoes','6,7,8,9',25,'2026-08-23 07:45:56',5),(10,'Party Wear Shoes','Stylish shoes for parties and events',1799.00,2499.00,'28% OFF',60.00,30.00,0,0,'shoes-2.png','Shoes','6,7,8,9',20,'2026-08-23 07:45:56',5),(11,'Comfortable Slippers','Soft and comfortable slippers',499.00,699.00,'29% OFF',30.00,15.00,0,0,'slippers-1.png','Slippers','6,7,8,9',60,'2026-08-23 07:45:56',6),(12,'Fashion Slippers','Trendy slippers for everyday use',699.00,999.00,'30% OFF',35.00,20.00,0,0,'slippers-2.png','Slippers','6,7,8,9',40,'2026-08-23 07:45:56',6),(13,'Classic Cotton Shirt','Comfortable cotton shirt for everyday wear',999.00,1499.00,'33% OFF',40.00,20.00,0,0,'shirts-1.png','Shirts','S,M,L,XL',50,'2026-08-23 07:47:16',7),(14,'Premium Women Shirt','Stylish premium shirt for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shirts-2.png','Shirts','S,M,L,XL',35,'2026-08-23 07:47:16',7),(15,'Floral Summer Dress','Beautiful floral dress perfect for summer',1499.00,2199.00,'32% OFF',0.00,30.00,0,0,'dress-1.png','Dresses','S,M,L,XL',30,'2026-08-23 07:47:16',8),(16,'Party Wear Dress','Elegant party wear dress',1999.00,2999.00,'33% OFF',70.00,35.00,0,0,'dress-2.png','Dresses','S,M,L,XL',20,'2026-08-23 07:47:16',8),(17,'Beauty Makeup Kit','Complete makeup kit for daily use',799.00,999.00,'33% OFF',35.00,20.00,0,0,'beauty-1.png','Beauty',NULL,40,'2026-08-23 07:47:16',9),(18,'Premium Beauty Kit','Premium beauty products collection',1499.00,1999.00,'25% OFF',50.00,25.00,0,0,'beauty-2.png','Beauty',NULL,25,'2026-08-23 07:47:16',9),(19,'Golden Bangles','Beautiful traditional golden bangles',599.00,899.00,'33% OFF',30.00,15.00,0,0,'bangles-1.png','Bangles','2-2, 2-4, 2-6',50,'2026-08-23 07:47:16',10),(20,'Designer Bangles Set','Designer bangles set for special occasions',899.00,1299.00,'31% OFF',35.00,20.00,0,0,'bangles-2.png','Bangles','2-2, 2-4, 2-6',30,'2026-08-23 07:47:16',10),(21,'Women Casual Shoes','Comfortable casual shoes for women',1299.00,1799.00,'28% OFF',50.00,25.00,0,0,'shoes-1.png','Shoes','6,7,8,9',25,'2026-08-23 07:47:16',11),(22,'Party Wear Shoes','Stylish shoes for parties and events',1799.00,2499.00,'28% OFF',60.00,30.00,0,0,'shoes-2.png','Shoes','6,7,8,9',20,'2026-08-23 07:47:16',11),(23,'Comfortable Slippers','Soft and comfortable slippers',499.00,699.00,'29% OFF',30.00,15.00,0,0,'slippers-1.png','Slippers','6,7,8,9',60,'2026-08-23 07:47:16',12),(24,'Fashion Slippers','Trendy slippers for everyday use',699.00,999.00,'30% OFF',35.00,20.00,0,0,'slippers-2.png','Slippers','6,7,8,9',40,'2026-08-23 07:47:16',12),(85,'Shirts','This product features a pack of two long-sleeved shirts for boys.',450.00,600.00,'25%',0.00,0.00,0,0,'1788780224797-496184627.webp','shirts','S,M',2,'2026-09-07 11:23:44',NULL);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -339,7 +374,7 @@ CREATE TABLE `users` (
   `reset_password_expires` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -348,7 +383,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Abhishek','abhishek123@gmail.com','$2a$10$w/UmYq/domo4fw9gB7DK9uQ4/1JFI8iKywCHwgC86KdUeGmpPfoCq','user','2026-08-13 07:37:40',NULL,NULL),(2,'Rahul sain','rahualsan@gmail.com','$2a$10$ahmndRYlyY00OqSVoU.H6u5EzdvaV6eYxYrTja//167q/Rb9DhluC','user','2026-08-13 07:41:10',NULL,NULL),(3,'rahul sahani','rahulsgnr2022@gmail.com','$2a$10$QIkyxzCzj7RG.A3pn9L.muVreUStmiz7MTN7R4kqGW3eJwlAqE1GS','user','2026-08-13 07:54:28',NULL,NULL),(4,'Kuljeet singh','kuljeetsingh@gmail.com','$2a$10$V1xIOCRFkFtof2e.raTupeu.BNV94IOtBhzDBWsOoJNuBjBbRFCJG','user','2026-08-13 08:06:12',NULL,NULL),(5,'Jayant','jayant@gmail.com','$2a$10$KbZU9URgIv/cGLUUKulZX.uSelsMeZM3QYONZrp8sWrE1ZPbHhw7S','user','2026-08-13 10:57:27',NULL,NULL),(7,'Abhishek','abhishekkumar97831@gmail.com','$2a$10$92FkXYzwHqVm5YYiRoZSKuSAkRkiG7TydE6cisHPxnQA06Wygp3Ry','user','2026-08-13 11:17:25','273f1b3047dc87c369a1ecfbaf21f1fef1808a7a7d2ed8da26a8fc7bdaacbeb6','2026-08-14 12:25:01'),(8,'abc','abc@gmail.com','$2a$10$aihle54RkXc43o7fR4oBwuXrgTy648QH/SAQJxoEqZXBnHUrvFW6K','user','2026-08-14 06:47:11','cee84befcda1101d3e1f3a0e8f7fee5298f376c4b802b3fc35dacbca1b81aaef','2026-08-14 12:32:47'),(9,'Rahul sain','rahulkumar2022@gmail.com','$2a$10$g02Vs9k0N1myRJakKYltZOVEgbjV8ijkcjF8UJS8DEpfmZgQNDR/C','user','2026-08-14 06:57:09','dd44ec60b4ae8d367bd12ec38ce6c4ba981218049bad26319b26f7635a344d49','2026-08-14 12:46:04'),(10,'kuljeet singh','kuljeet@gmail.com','$2a$10$lp.pSVM8vsgGZwqzfeAFkuIeeeQp1rfhST6nmIj0I9yURNsN.hbKG','user','2026-08-16 03:18:26','7ed55c9fe199078f730d7be9836f80c45cfee60faae5b47523b79ad5a363dc71','2026-08-16 09:09:25'),(11,'kuljeet singh','singhkaramsar@gmail.com','$2a$10$.hmK5SpcWh3SU2mH5Lr8dOtEgNr0bfKx1.muo0ZPAchx3.6iDyUd.','user','2026-08-16 03:25:53','b8c0bce6196837ab2b18d1629c1f54bc9068e0875d98aefe8e010ce8748ad3fb','2026-08-16 09:38:15'),(12,' yonit ','yonit@gmail.com','$2a$10$CpKb7F8bNj7VIK6oLmtfAexmVHkQ6jSy86jbcJryCIKaefCf.yjbu','user','2026-08-18 04:47:43',NULL,NULL),(13,'Vikash','vikash@gmail.com','$2a$10$ZTdVbK4wHTPyMyDss4f9JuZbBzMiB5GJJWMjhXM2Nvn8pDlGXjYK.','user','2026-08-20 11:14:39',NULL,NULL),(14,'Amit','amit@gmail.com','$2a$10$1dnELZs5QZ7lV9.ueyEqeugQT/wRs/80icfz5.0IAd31.YAQp6x7C','user','2026-08-22 04:57:23',NULL,NULL);
+INSERT INTO `users` VALUES (1,'Abhishek','abhishek123@gmail.com','$2a$10$w/UmYq/domo4fw9gB7DK9uQ4/1JFI8iKywCHwgC86KdUeGmpPfoCq','user','2026-08-13 07:37:40',NULL,NULL),(2,'Rahul sain','rahualsan@gmail.com','$2a$10$ahmndRYlyY00OqSVoU.H6u5EzdvaV6eYxYrTja//167q/Rb9DhluC','user','2026-08-13 07:41:10',NULL,NULL),(3,'rahul sahani','rahulsgnr2022@gmail.com','$2a$10$QIkyxzCzj7RG.A3pn9L.muVreUStmiz7MTN7R4kqGW3eJwlAqE1GS','user','2026-08-13 07:54:28',NULL,NULL),(4,'Kuljeet singh','kuljeetsingh@gmail.com','$2a$10$V1xIOCRFkFtof2e.raTupeu.BNV94IOtBhzDBWsOoJNuBjBbRFCJG','user','2026-08-13 08:06:12',NULL,NULL),(5,'Jayant','jayant@gmail.com','$2a$10$KbZU9URgIv/cGLUUKulZX.uSelsMeZM3QYONZrp8sWrE1ZPbHhw7S','user','2026-08-13 10:57:27',NULL,NULL),(7,'Abhishek','abhishekkumar97831@gmail.com','$2a$10$92FkXYzwHqVm5YYiRoZSKuSAkRkiG7TydE6cisHPxnQA06Wygp3Ry','admin','2026-08-13 11:17:25','273f1b3047dc87c369a1ecfbaf21f1fef1808a7a7d2ed8da26a8fc7bdaacbeb6','2026-08-14 12:25:01'),(8,'abc','abc@gmail.com','$2a$10$aihle54RkXc43o7fR4oBwuXrgTy648QH/SAQJxoEqZXBnHUrvFW6K','user','2026-08-14 06:47:11','cee84befcda1101d3e1f3a0e8f7fee5298f376c4b802b3fc35dacbca1b81aaef','2026-08-14 12:32:47'),(9,'Rahul sain','rahulkumar2022@gmail.com','$2a$10$g02Vs9k0N1myRJakKYltZOVEgbjV8ijkcjF8UJS8DEpfmZgQNDR/C','user','2026-08-14 06:57:09','dd44ec60b4ae8d367bd12ec38ce6c4ba981218049bad26319b26f7635a344d49','2026-08-14 12:46:04'),(10,'kuljeet singh','kuljeet@gmail.com','$2a$10$lp.pSVM8vsgGZwqzfeAFkuIeeeQp1rfhST6nmIj0I9yURNsN.hbKG','user','2026-08-16 03:18:26','7ed55c9fe199078f730d7be9836f80c45cfee60faae5b47523b79ad5a363dc71','2026-08-16 09:09:25'),(11,'kuljeet singh','singhkaramsar@gmail.com','$2a$10$.hmK5SpcWh3SU2mH5Lr8dOtEgNr0bfKx1.muo0ZPAchx3.6iDyUd.','user','2026-08-16 03:25:53','b8c0bce6196837ab2b18d1629c1f54bc9068e0875d98aefe8e010ce8748ad3fb','2026-08-16 09:38:15'),(12,' yonit ','yonit@gmail.com','$2a$10$CpKb7F8bNj7VIK6oLmtfAexmVHkQ6jSy86jbcJryCIKaefCf.yjbu','user','2026-08-18 04:47:43',NULL,NULL),(13,'Vikash','vikash@gmail.com','$2a$10$ZTdVbK4wHTPyMyDss4f9JuZbBzMiB5GJJWMjhXM2Nvn8pDlGXjYK.','user','2026-08-20 11:14:39',NULL,NULL),(14,'Amit','amit@gmail.com','$2a$10$1dnELZs5QZ7lV9.ueyEqeugQT/wRs/80icfz5.0IAd31.YAQp6x7C','user','2026-08-22 04:57:23',NULL,NULL),(15,'sunilkumar','sunil@gmail.com','$2a$10$s02lYrdpafF2gpQEOC7an.j1NL7mdCRBp4oEbNtD/KwVdqE0jz1bS','user','2026-09-04 04:35:55',NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -369,7 +404,7 @@ CREATE TABLE `wishlist` (
   KEY `product_id` (`product_id`),
   CONSTRAINT `wishlist_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `wishlist_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -378,7 +413,7 @@ CREATE TABLE `wishlist` (
 
 LOCK TABLES `wishlist` WRITE;
 /*!40000 ALTER TABLE `wishlist` DISABLE KEYS */;
-INSERT INTO `wishlist` VALUES (23,8,14,'2026-08-29 09:55:12');
+INSERT INTO `wishlist` VALUES (64,8,24,'2026-09-04 04:12:13'),(66,7,85,'2026-09-09 14:20:37');
 /*!40000 ALTER TABLE `wishlist` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -391,4 +426,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-04  9:20:19
+-- Dump completed on 2026-09-10 10:35:35
