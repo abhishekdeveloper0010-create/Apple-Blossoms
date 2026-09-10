@@ -2,7 +2,8 @@ const express = require("express");
 
 const router = express.Router();
 
-const productController = require("../controllers/productController");
+const reviewController =
+  require("../controllers/reviewController");
 
 const {
   authenticate,
@@ -10,67 +11,75 @@ const {
 } = require("../middleware/authMiddleware");
 
 // =====================================================
-// MULTER IMAGE UPLOAD
-// =====================================================
-
-const upload = require("../config/multer");
-
-// =====================================================
-// GET ALL PRODUCTS
+// PUBLIC — GET PRODUCT REVIEWS
 // =====================================================
 
 router.get(
-  "/",
-  productController.getAllProducts
+  "/product/:productId",
+  reviewController.getProductReviews
 );
 
 // =====================================================
-// GET SINGLE PRODUCT
-// IMPORTANT:
-// This must come after "/" and before admin routes
-// =====================================================
-
-router.get(
-  "/:id",
-  productController.getProductById
-);
-
-// =====================================================
-// CREATE PRODUCT
-// ADMIN ONLY
-// IMAGE UPLOAD
+// USER — ADD REVIEW
 // =====================================================
 
 router.post(
   "/",
   authenticate,
-  authorize("admin"),
-  upload.single("image"),
-  productController.createProduct
+  reviewController.addReview
 );
 
 // =====================================================
-// UPDATE PRODUCT
-// ADMIN ONLY
+// USER — UPDATE OWN REVIEW
 // =====================================================
 
 router.put(
   "/:id",
   authenticate,
-  authorize("admin"),
-  productController.updateProduct
+  reviewController.updateReview
 );
 
 // =====================================================
-// DELETE PRODUCT
-// ADMIN ONLY
+// USER — DELETE OWN REVIEW
 // =====================================================
 
 router.delete(
   "/:id",
   authenticate,
+  reviewController.deleteReview
+);
+
+// =====================================================
+// ADMIN — GET ALL REVIEWS
+// =====================================================
+
+router.get(
+  "/admin/all",
+  authenticate,
   authorize("admin"),
-  productController.deleteProduct
+  reviewController.getAllReviews
+);
+
+// =====================================================
+// ADMIN — UPDATE STATUS
+// =====================================================
+
+router.patch(
+  "/admin/:id/status",
+  authenticate,
+  authorize("admin"),
+  reviewController.updateReviewStatus
+);
+
+// =====================================================
+// ADMIN — DELETE REVIEW
+// =====================================================
+
+router.delete(
+  "/admin/:id",
+  authenticate,
+  authorize("admin"),
+  reviewController.adminDeleteReview
 );
 
 module.exports = router;

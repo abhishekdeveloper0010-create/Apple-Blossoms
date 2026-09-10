@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
 
+const JWT_SECRET =
+  process.env.JWT_SECRET || "defaultsecret";
+
 // =====================================================
 // AUTHENTICATE
 // =====================================================
@@ -34,7 +37,7 @@ const authenticate = (req, res, next) => {
     // Verify JWT
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET
+      JWT_SECRET
     );
 
     // User information

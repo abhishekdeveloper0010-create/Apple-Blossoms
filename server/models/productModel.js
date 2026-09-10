@@ -172,33 +172,31 @@ const createProduct = (productData, callback) => {
   const sql = `
     INSERT INTO products
     (
-      title,
+      name,
       description,
       price,
-      oldPrice,
+      old_price,
       offer,
       category,
-      subcategory,
-      brand,
-      rating,
-      inStock
+      image,
+      size,
+      stock
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
     [
-      productData.title,
+      productData.name,
       productData.description,
       productData.price,
-      productData.oldPrice,
+      productData.old_price,
       productData.offer,
       productData.category,
-      productData.subcategory,
-      productData.brand,
-      productData.rating,
-      productData.inStock,
+      productData.image,
+      productData.size,
+      productData.stock,
     ],
     callback,
   );
@@ -212,32 +210,30 @@ const updateProduct = (id, productData, callback) => {
   const sql = `
     UPDATE products
     SET
-      title = ?,
+      name = ?,
       description = ?,
       price = ?,
-      oldPrice = ?,
+      old_price = ?,
       offer = ?,
       category = ?,
-      subcategory = ?,
-      brand = ?,
-      rating = ?,
-      inStock = ?
+      image = ?,
+      size = ?,
+      stock = ?
     WHERE id = ?
   `;
 
   db.query(
     sql,
     [
-      productData.title,
+      productData.name,
       productData.description,
       productData.price,
-      productData.oldPrice,
+      productData.old_price,
       productData.offer,
       productData.category,
-      productData.subcategory,
-      productData.brand,
-      productData.rating,
-      productData.inStock,
+      productData.image,
+      productData.size,
+      productData.stock,
       id,
     ],
     callback,

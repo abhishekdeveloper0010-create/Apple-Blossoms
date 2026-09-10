@@ -94,10 +94,7 @@ exports.getAllProducts = (req, res) => {
 exports.getProductById = (req, res) => {
   const { id } = req.params;
 
-  // ===================================================
   // Validate ID
-  // ===================================================
-
   if (!id) {
     return res.status(400).json({
       success: false,
@@ -121,10 +118,7 @@ exports.getProductById = (req, res) => {
         });
       }
 
-      // =================================================
       // PRODUCT NOT FOUND
-      // =================================================
-
       if (
         !results ||
         results.length === 0
@@ -135,10 +129,7 @@ exports.getProductById = (req, res) => {
         });
       }
 
-      // =================================================
       // SINGLE PRODUCT
-      // =================================================
-
       const product = results[0];
 
       console.log(
@@ -158,50 +149,94 @@ exports.getProductById = (req, res) => {
 // CREATE PRODUCT
 // =====================================================
 
-exports.createProduct = (
-  req,
-  res
-) => {
-  const productData = req.body;
+exports.createProduct = (req, res) => {
+  try {
+    // Product text data + uploaded image
+    const productData = {
+      ...req.body,
+      image: req.file
+        ? req.file.filename
+        : null,
+    };
 
-  // ===================================================
-  // BASIC VALIDATION
-  // ===================================================
-
-  if (
-    !productData ||
-    Object.keys(productData).length === 0
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Product data is required",
+    console.log("CREATE PRODUCT:", {
+      body: req.body,
+      file: req.file
+        ? req.file.filename
+        : null,
     });
-  }
 
-  Product.createProduct(
-    productData,
-    (err, result) => {
-      if (err) {
-        console.error(
-          "Create Product Error:",
-          err
-        );
+    // =================================================
+    // BASIC VALIDATION
+    // =================================================
 
-        return res.status(500).json({
-          success: false,
-          message: "Failed to create product",
-          error: err.message,
-        });
-      }
-
-      return res.status(201).json({
-        success: true,
-        message:
-          "Product created successfully",
-        productId: result.insertId,
+    if (
+      !productData ||
+      Object.keys(productData).length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Product data is required",
       });
     }
-  );
+
+    // =================================================
+    // IMAGE VALIDATION
+    // =================================================
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Product image is required",
+      });
+    }
+
+    // =================================================
+    // CREATE PRODUCT IN DATABASE
+    // =================================================
+
+    Product.createProduct(
+      productData,
+      (err, result) => {
+        if (err) {
+          console.error(
+            "Create Product Error:",
+            err
+          );
+
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create product",
+            error: err.message,
+          });
+        }
+
+        return res.status(201).json({
+          success: true,
+          message:
+            "Product created successfully",
+
+          productId:
+            result.insertId,
+
+          image:
+            req.file.filename,
+        });
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Create Product Controller Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Something went wrong while creating product",
+      error: error.message,
+    });
+  }
 };
 
 // =====================================================

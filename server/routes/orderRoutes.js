@@ -12,6 +12,8 @@ const {
   getOrder,
   cancelOrder,
   returnOrderItem,
+  getAllOrders,
+  updateOrderStatus,
 } = require("../controllers/orderController");
 
 // =====================================================
@@ -20,7 +22,22 @@ const {
 
 const {
   authenticate,
+  authorize,
 } = require("../middleware/authMiddleware");
+
+router.get(
+  "/admin/all",
+  authenticate,
+  authorize("admin"),
+  getAllOrders,
+);
+
+router.patch(
+  "/admin/:id/status",
+  authenticate,
+  authorize("admin"),
+  updateOrderStatus,
+);
 
 // =====================================================
 // CREATE ORDER

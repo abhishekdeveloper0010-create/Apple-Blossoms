@@ -1001,6 +1001,63 @@ exports.returnOrderItem = async (
   }
 };
 
+exports.getAllOrders = async (req, res) => {
+  try {
+    const [orders] = await db.promise().execute(`
+      SELECT o.id, o.order_number, o.user_id, o.status,
+        o.total_amount, o.payment_method, o.payment_status,
+        o.created_at, u.name AS customer_name, u.email AS customer_email
+      FROM orders o
+      INNER JOIN users u ON u.id = o.user_id
+      ORDER BY o.created_at DESC
+    `);
+
+    return res.json({ success: true, orders });
+  } catch (error) {
+    console.error("GET ALL ORDERS ERROR:", error);
+    return res.status(500).json({ success: false, message: "Failed to load orders" });
+  }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+  const orderId = Number(req.params.id);
+  const { status } = req.body;
+  const allowedStatuses = [
+    "Order Placed",
+    "Confirmed",
+    "Processing",
+    "Shipped",
+    "Out for Delivery",
+    "Delivered",
+    "Cancelled",
+  ];
+
+  if (!Number.isInteger(orderId) || !allowedStatuses.includes(status)) {
+    return res.status(400).json({ success: false, message: "Invalid order status" });
+  }
+
+  try {
+    const [result] = await db.promise().execute(
+      "UPDATE orders SET status = ? WHERE id = ?",
+      [status, orderId],
+    );
+
+    if (!result.affectedRows) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    await db.promise().execute(
+      "INSERT INTO order_status_history (order_id, status, message) VALUES (?, ?, ?)",
+      [orderId, status, `Order status updated to ${status} by admin.`],
+    );
+
+    return res.json({ success: true, message: "Order status updated" });
+  } catch (error) {
+    console.error("UPDATE ORDER STATUS ERROR:", error);
+    return res.status(500).json({ success: false, message: "Failed to update order status" });
+  }
+};
+
 // =====================================================
 // EXPORTS
 // =====================================================
@@ -1020,4 +1077,10 @@ module.exports = {
 
   returnOrderItem:
     exports.returnOrderItem,
+
+  getAllOrders:
+    exports.getAllOrders,
+
+  updateOrderStatus:
+    exports.updateOrderStatus,
 };

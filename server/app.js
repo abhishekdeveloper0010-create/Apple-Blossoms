@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
 require("dotenv").config();
+
 require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
@@ -14,13 +14,13 @@ const addressRoutes = require("./routes/addressRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const { google } = require("googleapis");
 
 const app = express();
 
 const PORT = process.env.PORT || 4000;
-
 
 // =====================================================
 // MIDDLEWARE
@@ -34,7 +34,6 @@ app.use(
 
 app.use(express.json());
 
-
 // =====================================================
 // OAUTH CALLBACK
 // =====================================================
@@ -44,7 +43,9 @@ app.get("/oauth2callback", async (req, res) => {
     const { code } = req.query;
 
     if (!code) {
-      return res.status(400).send("Authorization code is missing.");
+      return res
+        .status(400)
+        .send("Authorization code is missing.");
     }
 
     const oauth2Client = new google.auth.OAuth2(
@@ -53,37 +54,60 @@ app.get("/oauth2callback", async (req, res) => {
       "http://localhost:4000/oauth2callback"
     );
 
-    const { tokens } = await oauth2Client.getToken(code);
+    const { tokens } =
+      await oauth2Client.getToken(code);
 
     console.log("\n==============================");
     console.log("REFRESH TOKEN:");
     console.log(tokens.refresh_token);
     console.log("==============================\n");
 
-    res.send("Google authorization successful. Check your terminal.");
+    res.send(
+      "Google authorization successful. Check your terminal."
+    );
   } catch (error) {
-    console.error("OAuth Error:", error.response?.data || error.message);
+    console.error(
+      "OAuth Error:",
+      error.response?.data || error.message
+    );
 
-    res.status(500).send("OAuth authorization failed");
+    res
+      .status(500)
+      .send("OAuth authorization failed");
   }
 });
-
 
 // =====================================================
 // ROUTES
 // =====================================================
 
 app.use("/api/auth", authRoutes);
+
 app.use("/api/products", productRoutes);
+
 app.use("/api/categories", categoryRoutes);
+
 app.use("/api/contact", contactRoutes);
+
 app.use("/api/newsletter", newsletterRoutes);
+
 app.use("/api/addresses", addressRoutes);
+
 app.use("/api/orders", orderRoutes);
 
-// PAYMENT ROUTES
-app.use("/api/payments", paymentRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
+// =====================================================
+// REVIEWS ROUTES
+// =====================================================
+
+app.use("/api/reviews", reviewRoutes);
+
+// =====================================================
+// PAYMENT ROUTES
+// =====================================================
+
+app.use("/api/payments", paymentRoutes);
 
 // =====================================================
 // PRODUCT IMAGES
@@ -91,9 +115,10 @@ app.use("/api/payments", paymentRoutes);
 
 app.use(
   "/images",
-  express.static(path.join(__dirname, "uploads/products"))
+  express.static(
+    path.join(__dirname, "uploads/products")
+  )
 );
-
 
 // =====================================================
 // CATEGORY IMAGES
@@ -101,9 +126,10 @@ app.use(
 
 app.use(
   "/category-images",
-  express.static(path.join(__dirname, "uploads/categories"))
+  express.static(
+    path.join(__dirname, "uploads/categories")
+  )
 );
-
 
 // =====================================================
 // TEST
@@ -113,14 +139,12 @@ app.get("/", (req, res) => {
   res.send("Apple Blossom Server Running");
 });
 
-
 // =====================================================
 // START SERVER
 // =====================================================
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(
+    `Server running on http://localhost:${PORT}`
+  );
 });
-
-
-app.use("/api/wishlist", wishlistRoutes);
