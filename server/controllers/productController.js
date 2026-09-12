@@ -149,7 +149,7 @@ exports.getProductById = (req, res) => {
 // CREATE PRODUCT
 // =====================================================
 
-exports.createProduct = (req, res) => {
+exports.createProduct = async (req, res) => {
   try {
     // Product text data + uploaded image
     const productData = {
@@ -189,6 +189,27 @@ exports.createProduct = (req, res) => {
         success: false,
         message: "Product image is required",
       });
+    }
+
+    // =================================================
+    // AUTO-SET CATEGORY_ID FROM CATEGORY NAME
+    // =================================================
+
+    if (productData.category && !productData.category_id) {
+      const categoryRows = await new Promise((resolve, reject) => {
+        db.query(
+          "SELECT id FROM categories WHERE LOWER(name) = LOWER(?) LIMIT 1",
+          [productData.category],
+          (err, results) => {
+            if (err) reject(err);
+            else resolve(results);
+          }
+        );
+      });
+
+      if (categoryRows.length > 0) {
+        productData.category_id = categoryRows[0].id;
+      }
     }
 
     // =================================================

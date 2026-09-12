@@ -426,4 +426,165 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+-- =====================================================
+-- GIFT CARDS
+-- =====================================================
+
+DROP TABLE IF EXISTS `gift_cards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `gift_cards` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL UNIQUE,
+  `amount` decimal(10,2) NOT NULL,
+  `balance` decimal(10,2) NOT NULL,
+  `sender_id` int DEFAULT NULL,
+  `receiver_email` varchar(255) DEFAULT NULL,
+  `receiver_name` varchar(100) DEFAULT NULL,
+  `message` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `expiry_date` date DEFAULT NULL,
+  `used_count` int DEFAULT '0',
+  `usage_limit` int DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `sender_id` (`sender_id`),
+  CONSTRAINT `gift_cards_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- USER GIFT CARDS (claimed by users)
+-- =====================================================
+
+DROP TABLE IF EXISTS `user_gift_cards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_gift_cards` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `gift_card_id` int NOT NULL,
+  `claimed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `gift_card_id` (`gift_card_id`),
+  CONSTRAINT `user_gift_cards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `user_gift_cards_ibfk_2` FOREIGN KEY (`gift_card_id`) REFERENCES `gift_cards` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- WALLET
+-- =====================================================
+
+DROP TABLE IF EXISTS `wallet`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wallet` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL UNIQUE,
+  `balance` decimal(10,2) DEFAULT '0.00',
+  `total_credited` decimal(10,2) DEFAULT '0.00',
+  `total_debited` decimal(10,2) DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `wallet_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- WALLET TRANSACTIONS
+-- =====================================================
+
+DROP TABLE IF EXISTS `wallet_transactions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wallet_transactions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `type` enum('credit', 'debit') NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `reference_type` varchar(50) DEFAULT NULL,
+  `reference_id` int DEFAULT NULL,
+  `balance_after` decimal(10,2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `wallet_transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- SALES & CAMPAIGNS
+-- =====================================================
+
+DROP TABLE IF EXISTS `campaigns`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `campaigns` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL UNIQUE,
+  `description` text DEFAULT NULL,
+  `banner_image` varchar(500) DEFAULT NULL,
+  `discount_type` enum('percentage', 'fixed', 'buy_get_free') NOT NULL,
+  `discount_value` decimal(10,2) DEFAULT '0.00',
+  `max_discount` decimal(10,2) DEFAULT NULL,
+  `min_order_amount` decimal(10,2) DEFAULT '0.00',
+  `buy_quantity` int DEFAULT NULL,
+  `get_quantity` int DEFAULT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `priority` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- CAMPAIGN CATEGORIES
+-- =====================================================
+
+DROP TABLE IF EXISTS `campaign_categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `campaign_categories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `campaign_id` int NOT NULL,
+  `category_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `category_id` (`category_id`),
+  CONSTRAINT `campaign_categories_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `campaign_categories_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- CAMPAIGN PRODUCTS
+-- =====================================================
+
+DROP TABLE IF EXISTS `campaign_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `campaign_products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `campaign_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `campaign_products_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `campaign_products_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =====================================================
+-- ORDER COUPON COLUMNS
+-- =====================================================
+
+ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_id` int DEFAULT NULL AFTER `total_amount`;
+ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_discount` decimal(10,2) DEFAULT '0.00' AFTER `coupon_id`;
+ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_code` varchar(50) DEFAULT NULL AFTER `coupon_discount`;
+ALTER TABLE `orders` ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE SET NULL;
+
 -- Dump completed on 2026-09-10 10:35:35

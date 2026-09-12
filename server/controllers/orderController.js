@@ -110,6 +110,8 @@ exports.placeOrder = async (
       paymentMethod,
       addressId,
       address_id,
+      couponDiscount,
+      couponCode,
     } = req.body;
 
     // =================================================
@@ -420,7 +422,7 @@ exports.placeOrder = async (
 
     const finalTotalAmount =
       calculatedSubtotal +
-      finalDeliveryCharge;
+      finalDeliveryCharge - (couponDiscount || 0);
 
     // =================================================
     // CREATE ORDER
@@ -444,6 +446,10 @@ exports.placeOrder = async (
 
           deliveryCharge:
             finalDeliveryCharge,
+
+          couponDiscount: couponDiscount || 0,
+
+          couponCode: couponCode || null,
 
           totalAmount:
             finalTotalAmount,

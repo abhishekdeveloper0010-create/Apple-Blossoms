@@ -58,6 +58,24 @@ function Checkout() {
     });
 
   // =====================================================
+  // COUPON DISCOUNT
+  // =====================================================
+
+  const [couponDiscount, setCouponDiscount] = useState(0);
+
+  useEffect(() => {
+    const savedCoupon = localStorage.getItem("appliedCoupon");
+    if (savedCoupon) {
+      try {
+        const { discount } = JSON.parse(savedCoupon);
+        setCouponDiscount(discount || 0);
+      } catch (e) {
+        localStorage.removeItem("appliedCoupon");
+      }
+    }
+  }, []);
+
+  // =====================================================
   // GET TOKEN
   // =====================================================
 
@@ -593,7 +611,7 @@ function Checkout() {
     cart.length > 0 ? 50 : 0;
 
   const total =
-    subtotal + delivery;
+    subtotal + delivery - couponDiscount;
 
   // =====================================================
   // SHIPPING INPUT
@@ -1242,6 +1260,9 @@ function Checkout() {
 
         deliveryCharge:
           delivery,
+
+        couponDiscount: couponDiscount,
+        couponCode: couponDiscount > 0 ? JSON.parse(localStorage.getItem("appliedCoupon") || "{}").coupon?.code || null : null,
 
         totalAmount:
           total,
@@ -2184,6 +2205,21 @@ function Checkout() {
                       )}
                     </span>
                   </div>
+
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between pt-3 text-green-600">
+                      <span>
+                        Coupon Discount
+                      </span>
+
+                      <span>
+                        -₹
+                        {couponDiscount.toFixed(
+                          2
+                        )}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="mt-4 flex justify-between border-t border-gray-200 pt-4 text-xl font-bold text-gray-800">
                     <span>

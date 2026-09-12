@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config();
 
+require("dotenv").config();
 require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
@@ -15,6 +15,10 @@ const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const couponRoutes = require("./routes/couponRoutes");
+const giftCardRoutes = require("./routes/giftCardRoutes");
+const walletRoutes = require("./routes/walletRoutes");
+const campaignRoutes = require("./routes/campaignRoutes");
 
 const { google } = require("googleapis");
 
@@ -78,7 +82,7 @@ app.get("/oauth2callback", async (req, res) => {
 });
 
 // =====================================================
-// ROUTES
+// API ROUTES
 // =====================================================
 
 app.use("/api/auth", authRoutes);
@@ -97,17 +101,21 @@ app.use("/api/orders", orderRoutes);
 
 app.use("/api/wishlist", wishlistRoutes);
 
-// =====================================================
-// REVIEWS ROUTES
-// =====================================================
-
 app.use("/api/reviews", reviewRoutes);
 
-// =====================================================
-// PAYMENT ROUTES
-// =====================================================
-
 app.use("/api/payments", paymentRoutes);
+
+// COUPONS
+app.use("/api/coupons", couponRoutes);
+
+// GIFT CARDS
+app.use("/api/gift-cards", giftCardRoutes);
+
+// WALLET
+app.use("/api/wallet", walletRoutes);
+
+// CAMPAIGNS
+app.use("/api/campaigns", campaignRoutes);
 
 // =====================================================
 // PRODUCT IMAGES

@@ -47,14 +47,22 @@ const getProductsPaginated = (
   if (search) {
     where = `
       WHERE
-        name LIKE ?
-        OR description LIKE ?
-        OR category LIKE ?
+        p.name LIKE ?
+        OR p.description LIKE ?
+        OR p.category LIKE ?
+        OR p.category IN (
+          SELECT name FROM categories WHERE LOWER(name) LIKE LOWER(?)
+        )
+        OR p.category_id IN (
+          SELECT id FROM categories WHERE LOWER(name) LIKE LOWER(?)
+        )
     `;
 
     const searchValue = `%${search}%`;
 
     values.push(
+      searchValue,
+      searchValue,
       searchValue,
       searchValue,
       searchValue
@@ -72,12 +80,12 @@ const getProductsPaginated = (
   ) {
     if (where) {
       where += `
-        AND category_id = ?
-      `;
+          AND p.category_id = ?
+        `;
     } else {
       where = `
-        WHERE category_id = ?
-      `;
+          WHERE p.category_id = ?
+        `;
     }
 
     values.push(Number(categoryId));
@@ -89,7 +97,7 @@ const getProductsPaginated = (
 
   const countSql = `
     SELECT COUNT(*) AS total
-    FROM products
+    FROM products p
     ${where}
   `;
 
@@ -119,10 +127,10 @@ const getProductsPaginated = (
 
       const sql = `
         SELECT
-          *
-        FROM products
+          p.*
+        FROM products p
         ${where}
-        ORDER BY id DESC
+        ORDER BY p.id DESC
         LIMIT ${safeLimit}
         OFFSET ${safeOffset}
       `;
@@ -178,11 +186,12 @@ const createProduct = (productData, callback) => {
       old_price,
       offer,
       category,
+      category_id,
       image,
       size,
       stock
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
@@ -194,6 +203,7 @@ const createProduct = (productData, callback) => {
       productData.old_price,
       productData.offer,
       productData.category,
+      productData.category_id || null,
       productData.image,
       productData.size,
       productData.stock,

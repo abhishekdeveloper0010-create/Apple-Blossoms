@@ -37,6 +37,8 @@ import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import OrderTracking from "./pages/OrderTracking";
 import Profile from "./pages/Profile";
+import Wallet from "./pages/Wallet";
+import GiftCards from "./pages/GiftCards";
 
 // =====================================================
 // ADMIN PAGES
@@ -46,6 +48,9 @@ import Admin from "./pages/admin/Admin";
 import AddProduct from "./pages/admin/AddProduct";
 import OrderManagement from "./pages/admin/OrderManagement";
 import ProductInventory from "./pages/admin/ProductInventory";
+import CouponManagement from "./pages/admin/CouponManagement";
+import GiftCardManagement from "./pages/admin/GiftCardManagement";
+import CampaignManagement from "./pages/admin/CampaignManagement";
 
 // =====================================================
 // CHECK TOKEN
@@ -361,6 +366,76 @@ function App() {
             <AdminRoute>
               <OrderManagement />
             </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - COUPON MANAGEMENT
+        ================================================= */}
+
+        <Route
+          path="/admin/coupons"
+          element={
+            <AdminRoute>
+              <CouponManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - GIFT CARD MANAGEMENT
+        ================================================= */}
+
+        <Route
+          path="/admin/gift-cards"
+          element={
+            <AdminRoute>
+              <GiftCardManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - CAMPAIGN MANAGEMENT
+        ================================================= */}
+
+        <Route
+          path="/admin/campaigns"
+          element={
+            <AdminRoute>
+              <CampaignManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            USER - WALLET
+        ================================================= */}
+
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute>
+              <Wallet />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =================================================
+
+            USER - GIFT CARDS
+        ================================================= */}
+
+        <Route
+          path="/gift-cards"
+          element={
+            <ProtectedRoute>
+              <GiftCards />
+            </ProtectedRoute>
           }
         />
 

@@ -1,4 +1,3 @@
- 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItem from "../components/CartItem";
@@ -11,11 +10,23 @@ function Cart() {
     "http://localhost:4000/api";
 
   const [cart, setCart] = useState([]);
+
+  // =====================================================
+  // COUPON STATES
+  // =====================================================
+
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+
+  // =====================================================
+  // CART VALIDATION STATES
+  // =====================================================
+
   const [validatingCart, setValidatingCart] = useState(false);
-  const [cartValidationMessage, setCartValidationMessage] = useState("");
+  const [cartValidationMessage, setCartValidationMessage] =
+    useState("");
 
   // =====================================================
   // GET CURRENT USER
@@ -62,6 +73,23 @@ function Cart() {
   };
 
   // =====================================================
+  // LOAD APPLIED COUPON FROM LOCALSTORAGE
+  // =====================================================
+
+  useEffect(() => {
+    const savedCoupon = localStorage.getItem("appliedCoupon");
+    if (savedCoupon) {
+      try {
+        const { coupon, discount: savedDiscount } = JSON.parse(savedCoupon);
+        setAppliedCoupon(coupon);
+        setDiscount(savedDiscount || 0);
+      } catch (e) {
+        localStorage.removeItem("appliedCoupon");
+      }
+    }
+  }, []);
+
+  // =====================================================
   // GET USER-SPECIFIC CART KEY
   // =====================================================
 
@@ -103,7 +131,7 @@ function Cart() {
       JSON.stringify(updatedCart)
     );
 
-    // Old common cart remove
+    // Remove old common cart
     localStorage.removeItem("cart");
 
     window.dispatchEvent(
@@ -295,6 +323,7 @@ function Cart() {
 
           if (quantity > stock) {
             finalQuantity = stock;
+
             hasIssue = true;
 
             issueMessages.push(
@@ -371,9 +400,21 @@ function Cart() {
 
             price: newPrice,
 
+            oldPrice:
+              product.oldPrice ??
+              product.old_price ??
+              item.oldPrice ??
+              item.old_price ??
+              null,
+
             image:
               product.image ||
               item.image ||
+              null,
+
+            images:
+              product.images ??
+              item.images ??
               null,
 
             category:
@@ -385,6 +426,7 @@ function Cart() {
 
             quantity: finalQuantity,
 
+            // SHIPPING
             shipping_charge:
               product.shipping_charge ??
               product.shippingCharge ??
@@ -413,6 +455,7 @@ function Cart() {
               item.shipping_free ??
               0,
 
+            // DELIVERY
             delivery_charge:
               product.delivery_charge ??
               product.deliveryCharge ??
@@ -462,6 +505,27 @@ function Cart() {
       }
 
       saveCart(finalCart);
+
+      // =============================================
+      // COUPON REVALIDATION
+      // =============================================
+
+      if (
+        appliedCoupon &&
+        finalCart.length > 0
+      ) {
+        setTimeout(() => {
+          validateAppliedCoupon(
+            finalCart.reduce(
+              (sum, item) =>
+                sum +
+                Number(item.price || 0) *
+                  Number(item.quantity || 1),
+              0
+            )
+          );
+        }, 0);
+      }
 
       // =============================================
       // MESSAGE
@@ -567,6 +631,14 @@ function Cart() {
       );
 
     saveCart(updatedCart);
+
+    // If cart becomes empty, remove coupon
+    if (updatedCart.length === 0) {
+      setCouponCode("");
+      setDiscount(0);
+      setAppliedCoupon(null);
+      setCouponMessage("");
+    }
   };
 
   // =====================================================
@@ -620,6 +692,15 @@ function Cart() {
       });
 
     saveCart(updatedCart);
+
+    // Coupon may change after quantity change
+    if (appliedCoupon) {
+      setDiscount(0);
+      setAppliedCoupon(null);
+      setCouponMessage(
+        "Cart changed. Please apply the coupon again."
+      );
+    }
   };
 
   // =====================================================
@@ -650,6 +731,343 @@ function Cart() {
       });
 
     saveCart(updatedCart);
+
+    // Coupon may change after quantity change
+    if (appliedCoupon) {
+      setDiscount(0);
+      setAppliedCoupon(null);
+      setCouponMessage(
+        "Cart changed. Please apply the coupon again."
+      );
+    }
+  };
+
+  // =====================================================
+  // SUBTOTAL
+  // =====================================================
+
+  const subtotal =
+    cart.reduce(
+      (total, item) => {
+        const price =
+          Number(
+            item.price || 0
+          );
+
+        const quantity =
+          Number(
+            item.quantity || 1
+          );
+
+        return (
+          total +
+          price * quantity
+        );
+      },
+      0
+    );
+
+  // =====================================================
+  // SHIPPING CHARGE
+  // =====================================================
+
+  const shipping =
+    cart.reduce(
+      (total, item) => {
+        const quantity =
+          Number(
+            item.quantity || 1
+          );
+
+        const shippingCharge =
+          Number(
+            item.shipping_charge ??
+              item.shippingCharge ??
+              0
+          );
+
+        const isShippingFree =
+          Number(
+            item.shipping_free ??
+              item.shippingFree ??
+              0
+          ) === 1;
+
+        if (isShippingFree) {
+          return total;
+        }
+
+        return (
+          total +
+          shippingCharge *
+            quantity
+        );
+      },
+      0
+    );
+
+  // =====================================================
+  // DELIVERY CHARGE
+  // =====================================================
+
+  const delivery =
+    cart.reduce(
+      (total, item) => {
+        const quantity =
+          Number(
+            item.quantity || 1
+          );
+
+        const deliveryCharge =
+          Number(
+            item.delivery_charge ??
+              item.deliveryCharge ??
+              0
+          );
+
+        const isDeliveryFree =
+          Number(
+            item.delivery_free ??
+              item.deliveryFree ??
+              0
+          ) === 1;
+
+        if (isDeliveryFree) {
+          return total;
+        }
+
+        return (
+          total +
+          deliveryCharge *
+            quantity
+        );
+      },
+      0
+    );
+
+  // =====================================================
+  // TOTAL
+  // =====================================================
+
+  const total = Math.max(
+    0,
+    subtotal +
+      shipping +
+      delivery -
+      discount
+  );
+
+  // =====================================================
+  // VALIDATE APPLIED COUPON
+  // =====================================================
+
+  const validateAppliedCoupon =
+    async (currentSubtotal) => {
+      if (!appliedCoupon) {
+        return;
+      }
+
+      const token = getToken();
+
+      if (!token) {
+        setDiscount(0);
+        setAppliedCoupon(null);
+        setCouponMessage(
+          "Please login to use coupons."
+        );
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${API_URL}/coupons/validate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body: JSON.stringify({
+              code:
+                appliedCoupon.code,
+              subtotal:
+                currentSubtotal,
+            }),
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (
+          !response.ok ||
+          !data.success
+        ) {
+          setDiscount(0);
+          setAppliedCoupon(null);
+
+          setCouponMessage(
+            data.message ||
+              "Coupon is no longer valid."
+          );
+
+          return;
+        }
+
+        setDiscount(
+          Number(
+            data.discount || 0
+          )
+        );
+
+        setAppliedCoupon(
+          data.coupon
+        );
+      } catch (error) {
+        console.error(
+          "REVALIDATE COUPON ERROR:",
+          error
+        );
+      }
+    };
+
+  // =====================================================
+  // APPLY COUPON
+  // BACKEND DATABASE VALIDATION
+  // =====================================================
+
+  const applyCoupon = async () => {
+    const code =
+      couponCode
+        .trim()
+        .toUpperCase();
+
+    if (!code) {
+      setDiscount(0);
+      setAppliedCoupon(null);
+
+      setCouponMessage(
+        "Enter a coupon code to save more."
+      );
+
+      return;
+    }
+
+    const user =
+      getCurrentUser();
+
+    const token =
+      getToken();
+
+    if (!user || !token) {
+      askLogin();
+      return;
+    }
+
+    if (cart.length === 0) {
+      setCouponMessage(
+        "Your cart is empty."
+      );
+
+      return;
+    }
+
+    try {
+      setCouponMessage(
+        "Checking coupon..."
+      );
+
+      const response =
+        await fetch(
+          `${API_URL}/coupons/validate`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body: JSON.stringify({
+              code,
+              subtotal,
+            }),
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+        setDiscount(0);
+        setAppliedCoupon(null);
+
+        setCouponMessage(
+          data.message ||
+            "Invalid coupon code."
+        );
+
+        return;
+      }
+
+      setDiscount(
+        Number(
+          data.discount || 0
+        )
+      );
+
+      setAppliedCoupon(
+        data.coupon
+      );
+
+      localStorage.setItem("appliedCoupon", JSON.stringify({
+        coupon: data.coupon,
+        discount: data.discount,
+      }));
+
+      setCouponMessage(
+        `Coupon ${data.coupon.code} applied! You saved ₹${formatPrice(
+          data.discount
+        )}.`
+      );
+    } catch (error) {
+      console.error(
+        "COUPON ERROR:",
+        error
+      );
+
+      setDiscount(0);
+      setAppliedCoupon(null);
+
+      setCouponMessage(
+        "Unable to validate coupon."
+      );
+    }
+  };
+
+  // =====================================================
+  // REMOVE COUPON
+  // =====================================================
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setDiscount(0);
+    setAppliedCoupon(null);
+    localStorage.removeItem("appliedCoupon");
+
+    setCouponMessage(
+      "Coupon removed."
+    );
   };
 
   // =====================================================
@@ -661,7 +1079,10 @@ function Cart() {
       const user =
         getCurrentUser();
 
-      if (!user) {
+      const token =
+        getToken();
+
+      if (!user || !token) {
         askLogin();
         return;
       }
@@ -670,6 +1091,7 @@ function Cart() {
         alert(
           "Your cart is empty."
         );
+
         return;
       }
 
@@ -712,186 +1134,78 @@ function Cart() {
         return;
       }
 
+      // =============================================
+      // COUPON VALIDATION BEFORE CHECKOUT
+      // =============================================
+
+      if (appliedCoupon) {
+        const couponResponse =
+          await fetch(
+            `${API_URL}/coupons/validate`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
+              },
+
+              body: JSON.stringify({
+                code:
+                  appliedCoupon.code,
+
+                subtotal:
+                  latestCart.reduce(
+                    (sum, item) =>
+                      sum +
+                      Number(
+                        item.price || 0
+                      ) *
+                        Number(
+                          item.quantity || 1
+                        ),
+                    0
+                  ),
+              }),
+            }
+          );
+
+        const couponData =
+          await couponResponse.json();
+
+        if (
+          !couponResponse.ok ||
+          !couponData.success
+        ) {
+          setDiscount(0);
+          setAppliedCoupon(null);
+
+          setCouponMessage(
+            couponData.message ||
+              "Coupon is no longer valid."
+          );
+
+          alert(
+            couponData.message ||
+              "Coupon is no longer valid. Please apply another coupon."
+          );
+
+          return;
+        }
+
+        // Update latest discount
+        setDiscount(
+          Number(
+            couponData.discount || 0
+          )
+        );
+      }
+
       navigate("/checkout");
     };
-
-  // =====================================================
-  // SUBTOTAL
-  // =====================================================
-
-  const subtotal =
-    cart.reduce(
-      (total, item) => {
-        const price =
-          Number(
-            item.price || 0
-          );
-
-        const quantity =
-          Number(
-            item.quantity || 1
-          );
-
-        return (
-          total +
-          price * quantity
-        );
-      },
-      0
-    );
-
-  // =====================================================
-  // SHIPPING CHARGE
-  // =====================================================
-
-  const shipping =
-    cart.reduce(
-      (total, item) => {
-        const quantity =
-          Number(
-            item.quantity || 1
-          );
-
-        const shippingCharge =
-          Number(
-            item.shipping_charge ||
-              item.shippingCharge ||
-              0
-          );
-
-        const isShippingFree =
-          Number(
-            item.shipping_free ??
-              item.shippingFree ??
-              0
-          ) === 1;
-
-        if (isShippingFree) {
-          return total;
-        }
-
-        return (
-          total +
-          shippingCharge *
-            quantity
-        );
-      },
-      0
-    );
-
-  // =====================================================
-  // DELIVERY CHARGE
-  // =====================================================
-
-  const delivery =
-    cart.reduce(
-      (total, item) => {
-        const quantity =
-          Number(
-            item.quantity || 1
-          );
-
-        const deliveryCharge =
-          Number(
-            item.delivery_charge ||
-              item.deliveryCharge ||
-              0
-          );
-
-        const isDeliveryFree =
-          Number(
-            item.delivery_free ??
-              item.deliveryFree ??
-              0
-          ) === 1;
-
-        if (isDeliveryFree) {
-          return total;
-        }
-
-        return (
-          total +
-          deliveryCharge *
-            quantity
-        );
-      },
-      0
-    );
-
-  // =====================================================
-  // TOTAL
-  // =====================================================
-
-  const total = Math.max(
-    0,
-    subtotal +
-      shipping +
-      delivery -
-      discount
-  );
-
-  // =====================================================
-  // APPLY COUPON
-  // =====================================================
-
-  const applyCoupon = () => {
-    const code =
-      couponCode
-        .trim()
-        .toUpperCase();
-
-    if (!code) {
-      setDiscount(0);
-
-      setCouponMessage(
-        "Enter a coupon code to save more."
-      );
-
-      return;
-    }
-
-    if (code === "APPLE10") {
-      const value =
-        Math.min(
-          Math.round(
-            subtotal * 0.1
-          ),
-          200
-        );
-
-      setDiscount(value);
-
-      setCouponMessage(
-        `Coupon applied! You saved ₹${value}.`
-      );
-
-      return;
-    }
-
-    if (code === "STYLE20") {
-      const value =
-        Math.min(
-          Math.round(
-            subtotal * 0.2
-          ),
-          300
-        );
-
-      setDiscount(value);
-
-      setCouponMessage(
-        `Coupon applied! You saved ₹${value}.`
-      );
-
-      return;
-    }
-
-    setDiscount(0);
-
-    setCouponMessage(
-      "Invalid coupon code. Try APPLE10 or STYLE20."
-    );
-  };
 
   // =====================================================
   // FORMAT PRICE
@@ -944,8 +1258,21 @@ function Cart() {
           {/* CART VALIDATION MESSAGE */}
 
           {validatingCart && (
-            <div className="mt-4 rounded-xl bg-sky-50 border border-sky-100 px-4 py-3 text-sm text-sky-700">
-              Checking latest product availability...
+            <div
+              className="
+                mt-4
+                rounded-xl
+                bg-sky-50
+                border
+                border-sky-100
+                px-4
+                py-3
+                text-sm
+                text-sky-700
+              "
+            >
+              Checking latest product
+              availability...
             </div>
           )}
 
@@ -992,7 +1319,8 @@ function Cart() {
                   mt-3
                 "
               >
-                Add some products to continue shopping.
+                Add some products to
+                continue shopping.
               </p>
             </div>
           ) : (
@@ -1112,6 +1440,9 @@ function Cart() {
               <div className="flex justify-between text-2xl pt-4">
                 <span>
                   Coupon
+                  {appliedCoupon
+                    ? ` (${appliedCoupon.code})`
+                    : ""}
                 </span>
 
                 <span className="text-green-600">
@@ -1135,65 +1466,137 @@ function Cart() {
                   text-slate-600
                 "
               >
-                <p className="font-semibold text-slate-800">
+                <p
+                  className="
+                    font-semibold
+                    text-slate-800
+                  "
+                >
                   Offers for you
                 </p>
 
                 <p className="mt-1">
-                  Use APPLE10 or STYLE20 for extra savings on fashion essentials.
+                  Apply a valid coupon
+                  to get extra savings
+                  on your order.
                 </p>
               </div>
 
               {/* COUPON INPUT */}
 
-              <div className="pt-4 pb-2 flex gap-2">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(event) =>
-                    setCouponCode(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Coupon code"
+              {!appliedCoupon ? (
+                <div className="pt-4 pb-2 flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(event) =>
+                      setCouponCode(
+                        event.target.value.toUpperCase()
+                      )
+                    }
+                    placeholder="Coupon code"
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-gray-300
+                      px-3
+                      py-2
+                      text-base
+                      outline-none
+                      focus:border-sky-500
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    onClick={
+                      applyCoupon
+                    }
+                    className="
+                      rounded-xl
+                      bg-slate-800
+                      px-4
+                      py-2
+                      text-sm
+                      font-semibold
+                      text-white
+                      hover:bg-slate-700
+                      cursor-pointer
+                    "
+                  >
+                    Apply
+                  </button>
+                </div>
+              ) : (
+                <div
                   className="
-                    w-full
+                    mt-4
+                    mb-2
+                    flex
+                    items-center
+                    justify-between
                     rounded-xl
                     border
-                    border-gray-300
-                    px-3
-                    py-2
-                    text-base
-                    outline-none
-                    focus:border-sky-500
-                  "
-                />
-
-                <button
-                  type="button"
-                  onClick={
-                    applyCoupon
-                  }
-                  className="
-                    rounded-xl
-                    bg-slate-800
+                    border-green-200
+                    bg-green-50
                     px-4
-                    py-2
-                    text-sm
-                    font-semibold
-                    text-white
-                    hover:bg-slate-700
-                    cursor-pointer
+                    py-3
                   "
                 >
-                  Apply
-                </button>
-              </div>
+                  <div>
+                    <p
+                      className="
+                        font-bold
+                        text-green-700
+                      "
+                    >
+                      {appliedCoupon.code}
+                    </p>
+
+                    <p
+                      className="
+                        text-sm
+                        text-green-600
+                      "
+                    >
+                      Coupon applied
+                      successfully
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={
+                      removeCoupon
+                    }
+                    className="
+                      text-sm
+                      font-semibold
+                      text-red-500
+                      hover:text-red-700
+                      cursor-pointer
+                    "
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
 
               {/* COUPON MESSAGE */}
 
               {couponMessage && (
-                <p className="text-sm text-slate-600">
+                <p
+                  className={`
+                    text-sm
+                    font-medium
+                    ${
+                      appliedCoupon
+                        ? "text-green-600"
+                        : "text-slate-600"
+                    }
+                  `}
+                >
                   {couponMessage}
                 </p>
               )}
@@ -1261,4 +1664,3 @@ function Cart() {
 }
 
 export default Cart;
- 

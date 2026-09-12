@@ -22,7 +22,7 @@ function Admin() {
           </p>
         </div>
 <br/>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-4">
 
           {/* ADD PRODUCT */}
 
@@ -73,6 +73,81 @@ function Admin() {
 
             <span className="mt-5 inline-block font-semibold text-cyan-700">
               Manage Products →
+            </span>
+          </button>
+
+          {/* COUPONS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/coupons")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🎟️
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Coupon Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Create and manage discount coupons and promo codes.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Coupons →
+            </span>
+          </button>
+
+          {/* GIFT CARDS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/gift-cards")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🎁
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Gift Card Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Create and manage gift cards for customers.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Gift Cards →
+            </span>
+          </button>
+
+          {/* CAMPAIGNS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/campaigns")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🏷️
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Campaign Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Create and manage sales campaigns and offers.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Campaigns →
             </span>
           </button>
 

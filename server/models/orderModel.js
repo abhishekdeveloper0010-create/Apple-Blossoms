@@ -25,6 +25,8 @@ const createOrder = async (
     totalAmount = 0,
     paymentMethod,
     addressId,
+    couponDiscount = 0,
+    couponCode = null,
   }
 ) => {
   const conn =
@@ -43,11 +45,13 @@ const createOrder = async (
         expected_delivery_date,
         subtotal,
         delivery_charge,
+        coupon_discount,
+        coupon_code,
         total_amount,
         payment_method,
         address_id
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       orderNumber,
@@ -56,6 +60,8 @@ const createOrder = async (
       expectedDeliveryDate || null,
       subtotal,
       deliveryCharge,
+      couponDiscount || 0,
+      couponCode || null,
       totalAmount,
       paymentMethod || null,
       addressId || null,
