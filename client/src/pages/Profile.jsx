@@ -92,6 +92,21 @@ function Profile() {
             >
               Wishlist
             </Link>
+
+            <Link
+              to="/my-returns"
+              className="
+                inline-flex items-center justify-center
+                rounded-full
+                bg-orange-100
+                px-5 py-3
+                text-sm font-semibold text-orange-700
+                transition hover:bg-orange-200
+                sm:px-6
+              "
+            >
+              My Returns
+            </Link>
           </div>
         </div>
         <br />

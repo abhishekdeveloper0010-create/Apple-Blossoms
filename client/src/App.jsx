@@ -39,6 +39,7 @@ import OrderTracking from "./pages/OrderTracking";
 import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import GiftCards from "./pages/GiftCards";
+import MyReturns from "./pages/MyReturns";
 
 // =====================================================
 // ADMIN PAGES
@@ -51,6 +52,9 @@ import ProductInventory from "./pages/admin/ProductInventory";
 import CouponManagement from "./pages/admin/CouponManagement";
 import GiftCardManagement from "./pages/admin/GiftCardManagement";
 import CampaignManagement from "./pages/admin/CampaignManagement";
+import ReturnManagement from "./pages/admin/ReturnManagement";
+import ShipmentManagement from "./pages/admin/ShipmentManagement";
+import NotificationManagement from "./pages/admin/NotificationManagement";
 
 // =====================================================
 // CHECK TOKEN
@@ -413,6 +417,48 @@ function App() {
 
         {/* =================================================
 
+            ADMIN - RETURN MANAGEMENT (STEP 4)
+        ================================================= */}
+
+        <Route
+          path="/admin/returns"
+          element={
+            <AdminRoute>
+              <ReturnManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - SHIPMENT & TRACKING (STEP 4)
+        ================================================= */}
+
+        <Route
+          path="/admin/shipments"
+          element={
+            <AdminRoute>
+              <ShipmentManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - NOTIFICATIONS (STEP 4)
+        ================================================= */}
+
+        <Route
+          path="/admin/notifications"
+          element={
+            <AdminRoute>
+              <NotificationManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
             USER - WALLET
         ================================================= */}
 
@@ -435,6 +481,19 @@ function App() {
           element={
             <ProtectedRoute>
               <GiftCards />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =================================================
+            USER - MY RETURNS (STEP 4)
+        ================================================= */}
+
+        <Route
+          path="/my-returns"
+          element={
+            <ProtectedRoute>
+              <MyReturns />
             </ProtectedRoute>
           }
         />

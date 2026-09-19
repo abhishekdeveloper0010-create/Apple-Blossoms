@@ -19,6 +19,24 @@ const couponRoutes = require("./routes/couponRoutes");
 const giftCardRoutes = require("./routes/giftCardRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const campaignRoutes = require("./routes/campaignRoutes");
+const returnRoutes = require("./routes/returnRoutes");
+const shippingRoutes = require("./routes/shippingRoutes");
+const invoiceRoutes = require("./routes/invoiceRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+
+// =====================================================
+// STEP 4 : CONFIG (startup diagnostics ke liye)
+// =====================================================
+
+const {
+  shippingConfig,
+  isShiprocketEnabled,
+} = require("./config/shipping");
+
+const {
+  isSmsEnabled,
+  isWhatsappEnabled,
+} = require("./config/notify");
 
 const { google } = require("googleapis");
 
@@ -118,6 +136,22 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/campaigns", campaignRoutes);
 
 // =====================================================
+// STEP 4 : ORDER OPERATIONS
+// =====================================================
+
+// RETURNS (return + approval + rejection + refund)
+app.use("/api/returns", returnRoutes);
+
+// SHIPPING (shipment + tracking number)
+app.use("/api/shipments", shippingRoutes);
+
+// INVOICE (printable / PDF / email)
+app.use("/api/invoices", invoiceRoutes);
+
+// NOTIFICATIONS (email / sms / whatsapp log)
+app.use("/api/notifications", notificationRoutes);
+
+// =====================================================
 // PRODUCT IMAGES
 // =====================================================
 
@@ -154,5 +188,46 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(
     `Server running on http://localhost:${PORT}`
+  );
+
+  // =====================================================
+  // STEP 4 : ORDER OPERATIONS - CONFIG DIAGNOSTICS
+  // =====================================================
+
+  const emailEnabled =
+    String(
+      process.env.NOTIFY_EMAIL_ENABLED || "true"
+    ) === "true";
+
+  console.log(
+    [
+      "",
+      "=== STEP 4 : ORDER OPERATIONS ===",
+      `Return window     : ${
+        process.env.RETURN_WINDOW_DAYS || 7
+      } days`,
+      `Shipping provider : ${shippingConfig.provider}${
+        isShiprocketEnabled()
+          ? " (shiprocket active)"
+          : " (manual mode)"
+      }`,
+      `Email             : ${
+        emailEnabled
+          ? "enabled"
+          : "disabled"
+      }`,
+      `SMS               : ${
+        isSmsEnabled()
+          ? "enabled"
+          : "not configured (skipped)"
+      }`,
+      `WhatsApp          : ${
+        isWhatsappEnabled()
+          ? "enabled"
+          : "not configured (skipped)"
+      }`,
+      "=================================",
+      "",
+    ].join("\n")
   );
 });

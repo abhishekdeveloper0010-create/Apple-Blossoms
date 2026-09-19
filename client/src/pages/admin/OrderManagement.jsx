@@ -95,6 +95,81 @@ function OrderManagement() {
     }
   };
 
+  // =====================================================
+  // STEP 4 : INVOICE (view / print / email)
+  // =====================================================
+
+  const openInvoice = async (orderId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/invoices/order/${orderId}/html`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to load invoice");
+      }
+
+      const html = await response.text();
+
+      const blob = new Blob([html], {
+        type: "text/html",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const win = window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      if (!win) {
+        setMessage(
+          "Popup blocked - please allow popups for invoice"
+        );
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const emailInvoice = async (orderId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/invoices/order/${orderId}/email`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({}),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to email invoice"
+        );
+      }
+
+      setMessage(data.message || "Invoice emailed");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case "Delivered":
@@ -352,6 +427,25 @@ function OrderManagement() {
 
                   </div>
 
+                  {/* ================= INVOICE ================= */}
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+
+                    <button
+                      onClick={() => openInvoice(order.id)}
+                      className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2.5 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-100"
+                    >
+                      🧾 View Invoice
+                    </button>
+
+                    <button
+                      onClick={() => emailInvoice(order.id)}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      ✉️ Email Invoice
+                    </button>
+
+                  </div>
+
                 </div>
 
               ))}
@@ -394,6 +488,10 @@ function OrderManagement() {
 
                       <th className="whitespace-nowrap p-4 text-sm font-bold text-slate-700 xl:p-5">
                         Status
+                      </th>
+
+                      <th className="whitespace-nowrap p-4 text-sm font-bold text-slate-700 xl:p-5">
+                        Invoice
                       </th>
 
                     </tr>
@@ -507,6 +605,33 @@ function OrderManagement() {
                             )}
 
                           </select>
+
+                        </td>
+
+                        {/* Invoice */}
+                        <td className="p-4 xl:p-5">
+
+                          <div className="flex flex-col gap-2">
+
+                            <button
+                              onClick={() =>
+                                openInvoice(order.id)
+                              }
+                              className="whitespace-nowrap rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100"
+                            >
+                               View
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                emailInvoice(order.id)
+                              }
+                              className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                            >
+                              ✉️ Email
+                            </button>
+
+                          </div>
 
                         </td>
 

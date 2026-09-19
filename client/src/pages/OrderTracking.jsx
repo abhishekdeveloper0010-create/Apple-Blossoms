@@ -42,6 +42,16 @@ function OrderTracking() {
   const [returnItemData, setReturnItemData] = useState(null);
 
   // =====================================================
+  // STEP 4 : INVOICE / SHIPMENT TRACKING STATES
+  // =====================================================
+
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+
+  const [shipment, setShipment] = useState(null);
+  const [trackingEvents, setTrackingEvents] = useState([]);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+
+  // =====================================================
   // TOKEN
   // =====================================================
 
@@ -181,6 +191,12 @@ function OrderTracking() {
 
       setSelectedOrder(data.order);
       setSelectedOrderId(orderId);
+
+      // =================================================
+      // STEP 4 : SHIPMENT TRACKING BHI LOAD KARO
+      // =================================================
+
+      loadShipmentTracking(orderId);
     } catch (err) {
       console.error("LOAD SINGLE ORDER ERROR:", err);
 
@@ -197,6 +213,13 @@ function OrderTracking() {
   const handleSelectOrder = (order) => {
     setSelectedOrderId(order.id);
     setSelectedOrder(order);
+
+    // ===================================================
+    // STEP 4 : purane tracking data ko reset karo
+    // ===================================================
+
+    setShipment(null);
+    setTrackingEvents([]);
 
     loadSingleOrder(order.id);
   };
@@ -317,6 +340,129 @@ function OrderTracking() {
       setError(err.message || "Failed to request return");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  // =====================================================
+  // STEP 4 : SHIPMENT TRACKING LOAD
+  // GET /api/shipments/order/:orderId
+  // =====================================================
+
+  const loadShipmentTracking = async (orderId) => {
+    if (!orderId) return;
+
+    try {
+      setTrackingLoading(true);
+
+      const token = getToken();
+
+      if (!token) {
+        setShipment(null);
+        setTrackingEvents([]);
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/shipments/order/${orderId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const contentType =
+        response.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        setShipment(null);
+        setTrackingEvents([]);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setShipment(null);
+        setTrackingEvents([]);
+        return;
+      }
+
+      setShipment(data.shipment || null);
+
+      setTrackingEvents(
+        Array.isArray(data.events) ? data.events : [],
+      );
+    } catch (err) {
+      console.error("LOAD SHIPMENT TRACKING ERROR:", err);
+
+      setShipment(null);
+      setTrackingEvents([]);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  // =====================================================
+  // STEP 4 : INVOICE (view / print / save as PDF)
+  // GET /api/invoices/order/:orderId/html
+  // =====================================================
+
+  const openInvoice = async (orderId) => {
+    try {
+      setInvoiceLoading(true);
+      setError("");
+
+      const token = getToken();
+
+      if (!token) {
+        setError("Please login first.");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/invoices/order/${orderId}/html`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to load invoice");
+      }
+
+      const html = await response.text();
+
+      const blob = new Blob([html], {
+        type: "text/html",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const win = window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      if (!win) {
+        setError(
+          "Popup blocked - please allow popups to view invoice",
+        );
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      console.error("OPEN INVOICE ERROR:", err);
+
+      setError(err.message || "Failed to load invoice");
+    } finally {
+      setInvoiceLoading(false);
     }
   };
 
@@ -640,6 +786,31 @@ function OrderTracking() {
                         </p>
                       </div>
                     </div>
+
+                    {/* =====================================================
+                        STEP 4 : INVOICE + RETURNS ACTIONS
+                    ===================================================== */}
+
+                    <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-5">
+                      <button
+                        type="button"
+                        onClick={() => openInvoice(selectedOrder.id)}
+                        disabled={invoiceLoading}
+                        className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-700 transition hover:border-sky-500 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        🧾{" "}
+                        {invoiceLoading
+                          ? "Loading..."
+                          : "View / Print Invoice"}
+                      </button>
+
+                      <Link
+                        to="/my-returns"
+                        className="inline-flex items-center gap-2 rounded-xl border border-orange-300 bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-700 transition hover:border-orange-500 hover:bg-orange-100"
+                      >
+                        ↩ My Returns
+                      </Link>
+                    </div>
                   </section>
                   <br />
                   {/* =====================================================
@@ -734,6 +905,135 @@ function OrderTracking() {
                     </div>
                   </section>
                   <br />
+
+                  {/* =====================================================
+                      STEP 4 : SHIPMENT / COURIER TRACKING
+                  ===================================================== */}
+
+                  {trackingLoading && !shipment && (
+                    <p className="text-sm font-medium text-slate-500">
+                      Loading courier details...
+                    </p>
+                  )}
+
+                  {shipment && (
+                    <>
+                      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+                        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-sky-600">
+                              Courier
+                            </p>
+
+                            <h2 className="mt-1 text-xl font-black text-slate-900 sm:text-2xl">
+                              Shipment Tracking
+                            </h2>
+                          </div>
+
+                          <span className="w-fit rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">
+                            {shipment.status || "Created"}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <div className="rounded-2xl bg-slate-50 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                              Courier
+                            </p>
+
+                            <p className="mt-1 font-black text-slate-800">
+                              {shipment.courier_name || "-"}
+                            </p>
+                          </div>
+
+                          <div className="rounded-2xl bg-slate-50 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                              Tracking Number
+                            </p>
+
+                            <p className="mt-1 break-all font-black text-slate-800">
+                              {shipment.awb_number || "-"}
+                            </p>
+                          </div>
+
+                          <div className="rounded-2xl bg-slate-50 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                              Expected Delivery
+                            </p>
+
+                            <p className="mt-1 font-black text-slate-800">
+                              {shipment.estimated_delivery
+                                ? formatDate(
+                                    shipment.estimated_delivery,
+                                  )
+                                : "-"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {shipment.tracking_url && (
+                          <a
+                            href={shipment.tracking_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-700"
+                          >
+                             Track on courier website
+                          </a>
+                        )}
+
+                        {trackingEvents.length > 0 && (
+                          <div className="mt-6 border-t border-slate-100 pt-5">
+                            <p className="mb-4 text-xs font-bold uppercase tracking-wider text-sky-600">
+                              Tracking Updates
+                            </p>
+
+                            <div className="space-y-4">
+                              {trackingEvents.map(
+                                (event, index) => (
+                                  <div
+                                    key={event.id || index}
+                                    className="flex gap-4"
+                                  >
+                                    <div className="mt-1 h-3 w-3 shrink-0 rounded-full bg-sky-500" />
+
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                        <p className="font-bold text-slate-800">
+                                          {event.status ||
+                                            "Update"}
+                                        </p>
+
+                                        <p className="text-xs text-slate-400">
+                                          {formatDate(
+                                            event.event_time ||
+                                              event.created_at,
+                                          )}
+                                        </p>
+                                      </div>
+
+                                      {event.message && (
+                                        <p className="mt-1 text-sm text-slate-500">
+                                          {event.message}
+                                        </p>
+                                      )}
+
+                                      {event.location && (
+                                        <p className="mt-1 text-xs text-slate-400">
+                                          📍 {event.location}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </section>
+                    </>
+                  )}
+
                   {/* =====================================================
                       PRODUCTS
                   ===================================================== */}

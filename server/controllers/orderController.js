@@ -10,6 +10,19 @@ const {
 } = require("../models/orderModel");
 
 // =====================================================
+// STEP 4 : ORDER OPERATIONS
+// =====================================================
+
+const {
+  notifySafe,
+} = require("../services/notificationService");
+
+const {
+  getOrderWithDetails,
+  createReturnRequest,
+} = require("../models/orderOpsModel");
+
+// =====================================================
 // HELPER: GET USER ID
 // =====================================================
 
@@ -560,6 +573,39 @@ exports.placeOrder = async (
     await connection.commit();
 
     // =================================================
+    // NOTIFICATION (EMAIL + SMS + WHATSAPP)
+    // Order place hone par customer ko message jaata hai.
+    // Ye block fail ho to bhi order fail nahi hoga.
+    // =================================================
+
+    try {
+      const placedOrder = await getOrderWithDetails(
+        orderId
+      );
+
+      if (placedOrder) {
+        await notifySafe({
+          event: "order_placed",
+
+          order: placedOrder,
+
+          user: {
+            id: userId,
+            email: placedOrder.customer_email,
+            phone:
+              placedOrder.customer_phone ||
+              placedOrder.address?.phone,
+          },
+        });
+      }
+    } catch (notificationError) {
+      console.error(
+        "ORDER PLACED NOTIFICATION ERROR:",
+        notificationError.message
+      );
+    }
+
+    // =================================================
     // RESPONSE
     // =================================================
 
@@ -941,7 +987,74 @@ exports.cancelOrder = async (
       }
     );
 
+    // =================================================
+    // STOCK WAPAS ADD KARO
+    // (Step 4 : order cancel hone par stock wapas)
+    // =================================================
+
+    const [cancelledItems] = await connection.execute(
+      `
+        SELECT
+          id,
+          product_id,
+          quantity
+        FROM order_items
+        WHERE order_id = ?
+      `,
+      [orderId]
+    );
+
+    for (const item of cancelledItems) {
+      if (!item.product_id) continue;
+
+      await connection.execute(
+        `
+          UPDATE products
+          SET stock = stock + ?
+          WHERE id = ?
+        `,
+        [
+          Number(item.quantity || 1),
+          item.product_id,
+        ]
+      );
+    }
+
     await connection.commit();
+
+    // =================================================
+    // CUSTOMER KO NOTIFY
+    // =================================================
+
+    try {
+      const cancelledOrder = await getOrderWithDetails(
+        orderId
+      );
+
+      if (cancelledOrder) {
+        await notifySafe({
+          event: "cancelled",
+
+          order: {
+            ...cancelledOrder,
+            cancellation_reason: reason,
+          },
+
+          user: {
+            id: userId,
+            email: cancelledOrder.customer_email,
+            phone:
+              cancelledOrder.customer_phone ||
+              cancelledOrder.address?.phone,
+          },
+        });
+      }
+    } catch (notificationError) {
+      console.error(
+        "CANCEL NOTIFICATION ERROR:",
+        notificationError.message
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -1060,7 +1173,64 @@ exports.returnOrderItem =
           }
         );
 
+      // =================================================
+      // STEP 4 : NAYE order_returns TABLE ME BHI ENTRY
+      // (admin panel isi table se return dekhta hai)
+      // =================================================
+
+      let returnId = null;
+
+      try {
+        returnId = await createReturnRequest(
+          connection,
+          {
+            orderId,
+            orderItemId: result.itemId,
+            userId,
+            productId: result.productId,
+            productName: result.productName,
+            quantity: 1,
+            reason,
+          }
+        );
+      } catch (returnTableError) {
+        console.error(
+          "ORDER_RETURNS INSERT ERROR:",
+          returnTableError.message
+        );
+      }
+
       await connection.commit();
+
+      // =================================================
+      // CUSTOMER KO NOTIFY
+      // =================================================
+
+      try {
+        const orderDetails = await getOrderWithDetails(
+          orderId
+        );
+
+        if (orderDetails) {
+          await notifySafe({
+            event: "return_requested",
+            order: orderDetails,
+            user: {
+              id: userId,
+              email: orderDetails.customer_email,
+              phone:
+                orderDetails.customer_phone ||
+                orderDetails.address?.phone,
+            },
+            returnId,
+          });
+        }
+      } catch (notificationError) {
+        console.error(
+          "RETURN REQUEST NOTIFICATION ERROR:",
+          notificationError.message
+        );
+      }
 
       return res.status(200).json({
         success: true,
@@ -1243,10 +1413,97 @@ exports.updateOrderStatus =
           ]
         );
 
+      // =================================================
+      // STEP 4 : ITEM STATUS + DATE FIELDS
+      // =================================================
+
+      await db
+        .promise()
+        .execute(
+          `
+            UPDATE order_items
+            SET status = ?
+            WHERE order_id = ?
+              AND status NOT IN ('Returned', 'Cancelled')
+          `,
+          [status, orderId]
+        );
+
+      if (status === "Delivered") {
+        await db.promise().execute(
+          `
+            UPDATE orders
+            SET delivered_at = COALESCE(delivered_at, NOW())
+            WHERE id = ?
+          `,
+          [orderId]
+        );
+      }
+
+      if (status === "Shipped") {
+        await db.promise().execute(
+          `
+            UPDATE orders
+            SET shipped_at = COALESCE(shipped_at, NOW())
+            WHERE id = ?
+          `,
+          [orderId]
+        );
+      }
+
+      // =================================================
+      // STEP 4 : CUSTOMER KO NOTIFY
+      // (email + sms + whatsapp)
+      // =================================================
+
+      const notificationEventByStatus = {
+        Confirmed: "order_confirmed",
+        Processing: "order_confirmed",
+        Packed: "order_packed",
+        Shipped: "order_shipped",
+        "Out for Delivery": "out_for_delivery",
+        Delivered: "delivered",
+        Cancelled: "cancelled",
+      };
+
+      const eventName =
+        notificationEventByStatus[status];
+
+      if (eventName) {
+        try {
+          const orderDetails =
+            await getOrderWithDetails(orderId);
+
+          if (orderDetails) {
+            await notifySafe({
+              event: eventName,
+
+              order: orderDetails,
+
+              user: {
+                id: orderDetails.user_id,
+
+                email: orderDetails.customer_email,
+
+                phone:
+                  orderDetails.customer_phone ||
+                  orderDetails.address?.phone,
+              },
+            });
+          }
+        } catch (notificationError) {
+          console.error(
+            "STATUS UPDATE NOTIFICATION ERROR:",
+            notificationError.message
+          );
+        }
+      }
+
       return res.json({
         success: true,
         message:
           "Order status updated",
+        status,
       });
     } catch (error) {
       console.error(

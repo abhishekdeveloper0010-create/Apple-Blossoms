@@ -177,6 +177,84 @@ function Admin() {
             </span>
           </button>
 
+          {/* RETURNS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/returns")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              ↩️
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Return Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Approve or reject return requests,
+              mark pickup and process refunds.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Returns →
+            </span>
+          </button>
+
+          {/* SHIPMENTS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/shipments")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🚚
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Shipment & Tracking
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Create shipments, add courier
+              tracking numbers and sync status.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Shipments →
+            </span>
+          </button>
+
+          {/* NOTIFICATIONS */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/notifications")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🔔
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Notifications
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Email, SMS and WhatsApp message log
+              with channel status and test sending.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              View Notifications →
+            </span>
+          </button>
+
         </div>
 
       </div>
