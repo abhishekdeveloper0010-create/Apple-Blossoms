@@ -475,20 +475,6 @@ function OrderTracking() {
   };
 
   // =====================================================
-  // CHECK RETURN
-  // =====================================================
-
-  const canReturnItem = (item) => {
-    return (
-      item?.status === "Delivered" &&
-      !item?.rmaRequested &&
-      !item?.rma_requested &&
-      !item?.rmaStatus &&
-      !item?.rma_status
-    );
-  };
-
-  // =====================================================
   // STATUS
   // =====================================================
 
@@ -540,7 +526,7 @@ function OrderTracking() {
   if (loadingOrders) {
     return (
       <div className="min-h-screen w-full bg-slate-50">
-        <div className="mx-auto flex min-h-[70vh] w-full max-w-[1800px] items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-[70vh] w-full items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="mx-auto mb-5 h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600" />
 
@@ -561,7 +547,7 @@ function OrderTracking() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50">
-      <div className="mx-auto w-full max-w-[1800px] px-3 py-5 sm:px-5 sm:py-7 md:px-7 lg:px-10 xl:px-12">
+      <div className="w-full px-3 py-5 sm:px-5 sm:py-7 md:px-7 lg:px-10 xl:px-12 2xl:px-16">
         {/* =====================================================
             HEADER
         ===================================================== */}
@@ -651,12 +637,12 @@ function OrderTracking() {
              ORDERS + DETAILS
           ===================================================== */
 
-          <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[400px_minmax(0,1fr)]">
+          <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[420px_minmax(0,1fr)]">
             {/* =====================================================
                 ORDER LIST
             ===================================================== */}
 
-            <aside className="h-fit xl:sticky xl:top-5">
+            <aside className="h-fit lg:sticky lg:top-5">
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 bg-slate-50/80 p-5 sm:p-6">
                   <div className="flex items-center justify-between">

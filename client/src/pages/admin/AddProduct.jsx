@@ -452,9 +452,9 @@ function AddProduct() {
   // =====================================================
 
   return (
-    <main className="min-h-screen w-full bg-slate-50 px-3 py-5 sm:px-5 sm:py-6 md:px-8 lg:px-10 xl:px-12">
+    <main className="min-h-screen w-full bg-slate-50 px-3 py-5 sm:px-5 sm:py-6 md:px-7 lg:px-10 xl:px-12 2xl:px-16">
 
-      <div className="mx-auto w-full max-w-[1600px]">
+      <div className="w-full">
 
         {/* =================================================
             HEADER

@@ -224,8 +224,8 @@ function NotificationManagement() {
   // ---------------------------------------------------
 
   return (
-    <main className="min-h-screen w-full bg-slate-50 px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-[1400px]">
+    <main className="min-h-screen w-full bg-slate-50 px-3 py-4 sm:px-5 sm:py-6 md:px-7 lg:px-10 xl:px-12 2xl:px-16">
+      <div className="w-full">
 
         {/* ================= HEADER ================= */}
 

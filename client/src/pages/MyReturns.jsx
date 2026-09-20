@@ -154,7 +154,7 @@ function MyReturns() {
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-slate-50">
-        <div className="mx-auto flex min-h-[70vh] w-full max-w-[1200px] items-center justify-center px-4">
+        <div className="flex min-h-[70vh] w-full items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="mx-auto mb-5 h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600" />
 
@@ -171,7 +171,7 @@ function MyReturns() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50">
-      <div className="mx-auto w-full max-w-[1200px] px-3 py-6 sm:px-5 sm:py-8 lg:px-8">
+      <div className="w-full px-3 py-6 sm:px-5 sm:py-8 md:px-7 lg:px-10 xl:px-12 2xl:px-16">
         {/* =====================================================
             HERO
         ===================================================== */}

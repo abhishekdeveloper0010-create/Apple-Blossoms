@@ -4,9 +4,9 @@ function Admin() {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+    <main className="min-h-screen w-full bg-slate-50 px-4 py-8 sm:px-6 sm:py-10 md:px-8 lg:px-10 xl:px-12">
 
-      <div className="mx-auto max-w-6xl">
+      <div className="w-full">
 
         <div className="mb-10">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">
@@ -22,7 +22,7 @@ function Admin() {
           </p>
         </div>
 <br/>
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
           {/* ADD PRODUCT */}
 

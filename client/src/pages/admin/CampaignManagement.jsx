@@ -72,8 +72,8 @@ function CampaignManagement() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
-      <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen w-full bg-slate-50 px-4 py-8 sm:px-6 sm:py-10 md:px-8 lg:px-10 xl:px-12 2xl:px-16">
+      <div className="w-full">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <button onClick={() => navigate("/admin")} className="mb-2 text-sm text-cyan-700 hover:underline">Back to Dashboard</button>
@@ -86,9 +86,9 @@ function CampaignManagement() {
         {showForm && (
           <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-xl font-bold">Create Campaign</h2>
-            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2"><label className="mb-1 block text-sm font-medium text-slate-700">Campaign Name</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" placeholder="e.g., Diwali Sale" required /></div>
-              <div className="sm:col-span-2"><label className="mb-1 block text-sm font-medium text-slate-700">Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" rows="2" placeholder="Campaign details..." /></div>
+            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              <div className="col-span-full"><label className="mb-1 block text-sm font-medium text-slate-700">Campaign Name</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" placeholder="e.g., Diwali Sale" required /></div>
+              <div className="col-span-full"><label className="mb-1 block text-sm font-medium text-slate-700">Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" rows="2" placeholder="Campaign details..." /></div>
               <div><label className="mb-1 block text-sm font-medium text-slate-700">Discount Type</label><select value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2"><option value="percentage">Percentage (%)</option><option value="fixed">Fixed Amount</option><option value="buy_get_free">Buy X Get Y Free</option></select></div>
               <div><label className="mb-1 block text-sm font-medium text-slate-700">Discount Value</label><input type="number" value={form.discount_value} onChange={(e) => setForm({ ...form, discount_value: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" placeholder="e.g., 20" /></div>
               {form.discount_type === "percentage" && <div><label className="mb-1 block text-sm font-medium text-slate-700">Max Discount (Rs)</label><input type="number" value={form.max_discount} onChange={(e) => setForm({ ...form, max_discount: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" placeholder="e.g., 1000" /></div>}
@@ -98,7 +98,7 @@ function CampaignManagement() {
               <div><label className="mb-1 block text-sm font-medium text-slate-700">End Date</label><input type="datetime-local" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" required /></div>
               <div><label className="mb-1 block text-sm font-medium text-slate-700">Priority</label><input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="w-full rounded-lg border border-slate-300 px-4 py-2" placeholder="0" /></div>
               <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="h-4 w-4" /><label className="text-sm font-medium text-slate-700">Active</label></div>
-              <div className="flex gap-3 sm:col-span-2"><button type="submit" className="rounded-lg bg-cyan-700 px-6 py-2 font-semibold text-white hover:bg-cyan-800">Create</button><button type="button" onClick={() => setShowForm(false)} className="rounded-lg border border-slate-300 px-6 py-2 font-semibold text-slate-700 hover:bg-slate-50">Cancel</button></div>
+              <div className="flex gap-3 col-span-full"><button type="submit" className="rounded-lg bg-cyan-700 px-6 py-2 font-semibold text-white hover:bg-cyan-800">Create</button><button type="button" onClick={() => setShowForm(false)} className="rounded-lg border border-slate-300 px-6 py-2 font-semibold text-slate-700 hover:bg-slate-50">Cancel</button></div>
             </form>
           </div>
         )}
