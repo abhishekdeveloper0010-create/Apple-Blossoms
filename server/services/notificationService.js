@@ -39,23 +39,35 @@ const promiseDb = () => db.promise();
 const normalizePhone = (phone) => {
   if (!phone) return "";
 
-  const cleaned = String(phone).replace(/[^\d+]/g, "");
+  const raw = String(phone).trim();
 
-  if (!cleaned) return "";
+  // Sirf digits rakho (+, space, dash, brackets hata do)
+  let digits = raw.replace(/[^\d]/g, "");
 
-  if (cleaned.startsWith("+")) {
-    return "+" + cleaned.replace(/\+/g, "");
+  if (!digits) return "";
+
+  // International prefix 00 hatao (0091... -> 91...)
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2);
   }
 
-  if (cleaned.length === 10) {
-    return `+91${cleaned}`;
+  // India ka leading 0 hatao
+  // (08619141847 -> 8619141847, warna +08619141847 invalid banta hai)
+  if (digits.length > 10 && digits.startsWith("0")) {
+    digits = digits.replace(/^0+/, "");
   }
 
-  if (cleaned.length === 12 && cleaned.startsWith("91")) {
-    return `+${cleaned}`;
+  // 10 digit local number -> +91XXXXXXXXXX
+  if (digits.length === 10) {
+    return `+91${digits}`;
   }
 
-  return `+${cleaned}`;
+  // 12 digit with 91 country code -> +91XXXXXXXXXX
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return `+${digits}`;
+  }
+
+  return `+${digits}`;
 };
 
 // =====================================================
