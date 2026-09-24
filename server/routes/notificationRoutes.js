@@ -45,4 +45,16 @@ router.post(
   notificationController.sendTest
 );
 
+// =====================================================
+// ADMIN : SCHEDULE NOTIFICATION
+// POST /api/notifications/schedule
+// =====================================================
+
+router.post(
+  "/schedule",
+  authenticate,
+  authorize("admin"),
+  notificationController.scheduleNotification
+);
+
 module.exports = router;

@@ -27,6 +27,16 @@ const createOrder = async (
     addressId,
     couponDiscount = 0,
     couponCode = null,
+    // STEP 6 : BUSINESS ESSENTIALS
+    codCharge = 0,
+    taxAmount = 0,
+    taxRatePercent = 0,
+    cgstAmount = 0,
+    sgstAmount = 0,
+    igstAmount = 0,
+    shippingPincode = null,
+    shippingState = null,
+    shippingZone = null,
   }
 ) => {
   const conn =
@@ -49,9 +59,18 @@ const createOrder = async (
         coupon_code,
         total_amount,
         payment_method,
-        address_id
+        address_id,
+        cod_charge,
+        tax_amount,
+        tax_rate_percent,
+        cgst_amount,
+        sgst_amount,
+        igst_amount,
+        shipping_pincode,
+        shipping_state,
+        shipping_zone
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       orderNumber,
@@ -65,6 +84,15 @@ const createOrder = async (
       totalAmount,
       paymentMethod || null,
       addressId || null,
+      codCharge || 0,
+      taxAmount || 0,
+      taxRatePercent || 0,
+      cgstAmount || 0,
+      sgstAmount || 0,
+      igstAmount || 0,
+      shippingPincode || null,
+      shippingState || null,
+      shippingZone || null,
     ]
   );
 

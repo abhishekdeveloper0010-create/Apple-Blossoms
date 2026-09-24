@@ -23,6 +23,18 @@ const {
 } = require("../models/orderOpsModel");
 
 // =====================================================
+// STEP 6 : BUSINESS ESSENTIALS
+// =====================================================
+
+const {
+  calculateShipping,
+} = require("../services/pincodeService");
+
+const {
+  calculateOrderTax,
+} = require("../services/taxService");
+
+// =====================================================
 // HELPER: GET USER ID
 // =====================================================
 
@@ -408,26 +420,88 @@ exports.placeOrder = async (
         quantity,
 
         availableStock,
+
+        // STEP 6 : GST ke liye category
+        category: product.category,
       });
     }
 
     // =================================================
-    // DELIVERY CHARGE
+    // DELIVERY CHARGE + GST  (STEP 6)
     // =================================================
 
     // IMPORTANT:
     // Frontend delivery amount ko blindly trust nahi karna.
     //
-    // Current project me checkout delivery ₹50 hai.
-    // Isliye backend bhi ₹50 calculate karega.
-    //
-    // Later pincode/location based shipping system
-    // add kar sakte hain.
+    // STEP 6: Ab pincode/location based shipping + GST
+    // backend pe calculate hota hai:
+    //   1) Address (ya order ke shipping fields) se pincode
+    //   2) Pincode se zone-wise shipping charge
+    //   3) COD ho to COD extra charge
+    //   4) Category + state ke hisaab se GST
+
+    // -------------------------------------------------
+    // PINCODE + STATE
+    // (address table se, warna body ke shipping se)
+    // -------------------------------------------------
+
+    let destPincode = null;
+    let destState = null;
+
+    if (finalAddressId) {
+      const [addressRows] =
+        await connection.execute(
+          `SELECT pincode, state FROM addresses WHERE id = ? LIMIT 1`,
+          [finalAddressId]
+        );
+
+      if (addressRows.length > 0) {
+        destPincode = addressRows[0].pincode;
+        destState = addressRows[0].state;
+      }
+    }
+
+    if (!destPincode && req.body?.shipping) {
+      destPincode =
+        req.body.shipping.pin ||
+        req.body.shipping.pincode ||
+        null;
+
+      destState =
+        destState || req.body.shipping.state || null;
+    }
+
+    // -------------------------------------------------
+    // SHIPPING CHARGE
+    // -------------------------------------------------
+
+    const shippingQuote = calculateShipping({
+      pincode: destPincode || "152128",
+      subtotal: calculatedSubtotal,
+      paymentMethod: finalPaymentMethod,
+    });
 
     const finalDeliveryCharge =
-      finalItems.length > 0
-        ? 50
+      shippingQuote.serviceable
+        ? shippingQuote.shippingCharge
         : 0;
+
+    const finalCodCharge = shippingQuote.codCharge || 0;
+
+    // -------------------------------------------------
+    // GST
+    // -------------------------------------------------
+
+    const taxSummary = calculateOrderTax({
+      items: validatedItems.map((item) => ({
+        category: item.category,
+        price: Number(item.orderItem?.price ?? 0),
+        quantity: item.quantity,
+      })),
+      destState,
+    });
+
+    const finalTaxAmount = taxSummary.totalTaxAmount;
 
     // =================================================
     // FINAL TOTAL
@@ -435,7 +509,10 @@ exports.placeOrder = async (
 
     const finalTotalAmount =
       calculatedSubtotal +
-      finalDeliveryCharge - (couponDiscount || 0);
+      finalDeliveryCharge +
+      finalCodCharge +
+      finalTaxAmount -
+      (couponDiscount || 0);
 
     // =================================================
     // CREATE ORDER
@@ -459,6 +536,33 @@ exports.placeOrder = async (
 
           deliveryCharge:
             finalDeliveryCharge,
+
+          codCharge: finalCodCharge,
+
+          taxAmount: finalTaxAmount,
+
+          taxRatePercent:
+            validatedItems.length > 0
+              ? Math.round(
+                  (finalTaxAmount /
+                    Math.max(calculatedSubtotal, 1)) *
+                    100 *
+                    100
+                ) / 100
+              : 0,
+
+          cgstAmount: taxSummary.cgstAmount,
+
+          sgstAmount: taxSummary.sgstAmount,
+
+          igstAmount: taxSummary.igstAmount,
+
+          shippingPincode: destPincode,
+
+          shippingState: destState,
+
+          shippingZone:
+            shippingQuote.zone || null,
 
           couponDiscount: couponDiscount || 0,
 

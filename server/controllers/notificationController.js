@@ -14,6 +14,7 @@ const {
   isSmsEnabled,
   isWhatsappEnabled,
   sendEmailMessage,
+  scheduleNotification,
 } = require("../services/notificationService");
 
 const {
@@ -232,6 +233,57 @@ exports.sendTest = async (req, res) => {
 };
 
 // =====================================================
+// SCHEDULE NOTIFICATION
+// POST /api/notifications/schedule
+// =====================================================
+
+exports.scheduleNotification = async (req, res) => {
+  try {
+    const channel = String(
+      req.body?.channel || ""
+    ).toLowerCase();
+
+    const event = String(req.body?.event || "");
+    const recipient = req.body?.recipient || null;
+    const subject = req.body?.subject || null;
+    const message = req.body?.message || null;
+    const scheduledAt = req.body?.scheduledAt || null;
+
+    if (!channel || !event || !scheduledAt || !recipient) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "channel, event, recipient, and scheduledAt are required",
+      });
+    }
+
+    const result = await scheduleNotification({
+      userId: getUserId(req),
+      channel,
+      event,
+      recipient,
+      subject,
+      message,
+      scheduledAt,
+    });
+
+    return res.json({
+      success: true,
+      message: "Notification scheduled successfully",
+      notification: result,
+    });
+  } catch (error) {
+    console.error("SCHEDULE NOTIFICATION ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message || "Failed to schedule notification",
+    });
+  }
+};
+
+// =====================================================
 // EXPORT
 // =====================================================
 
@@ -239,4 +291,5 @@ module.exports = {
   getNotifications: exports.getNotifications,
   getStatus: exports.getStatus,
   sendTest: exports.sendTest,
+  scheduleNotification: exports.scheduleNotification,
 };

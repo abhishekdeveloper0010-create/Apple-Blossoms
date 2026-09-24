@@ -65,6 +65,16 @@ const buildInvoice = (order) => {
   const discount = Number(order.coupon_discount || 0);
   const total = Number(order.total_amount || 0);
 
+  // =====================================================
+  // STEP 6 : GST BREAKDOWN
+  // =====================================================
+
+  const cgstAmount = Number(order.cgst_amount || 0);
+  const sgstAmount = Number(order.sgst_amount || 0);
+  const igstAmount = Number(order.igst_amount || 0);
+  const taxAmount = Number(order.tax_amount || 0);
+  const codCharge = Number(order.cod_charge || 0);
+
   const isPaid =
     String(
       order.payment_status || ""
@@ -131,7 +141,12 @@ const buildInvoice = (order) => {
       totalQuantity,
       subtotal,
       deliveryCharge,
+      codCharge,
       discount,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
+      taxAmount,
       total,
       paidAmount,
       balanceDue: Number(
@@ -395,6 +410,38 @@ const renderInvoiceHtml = (invoice) => {
       <span>Delivery Charge</span>
       <span>${money(invoice.summary.deliveryCharge)}</span>
     </div>
+    ${
+      invoice.summary.codCharge > 0
+        ? `<div>
+            <span>COD Handling Fee</span>
+            <span>${money(invoice.summary.codCharge)}</span>
+          </div>`
+        : ""
+    }
+    ${
+      invoice.summary.igstAmount > 0
+        ? `<div>
+            <span>IGST</span>
+            <span>${money(invoice.summary.igstAmount)}</span>
+          </div>`
+        : ""
+    }
+    ${
+      invoice.summary.cgstAmount > 0
+        ? `<div>
+            <span>CGST</span>
+            <span>${money(invoice.summary.cgstAmount)}</span>
+          </div>`
+        : ""
+    }
+    ${
+      invoice.summary.sgstAmount > 0
+        ? `<div>
+            <span>SGST</span>
+            <span>${money(invoice.summary.sgstAmount)}</span>
+          </div>`
+        : ""
+    }
     ${
       invoice.summary.discount > 0
         ? `<div>

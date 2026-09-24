@@ -84,8 +84,14 @@ const createNotificationLog = async ({
   subject = null,
   message = null,
   provider = null,
+  scheduledAt = null,
 }) => {
   try {
+    const normalizedScheduledAt =
+      scheduledAt && !Number.isNaN(new Date(scheduledAt).getTime())
+        ? new Date(scheduledAt)
+        : null;
+
     const [result] = await promiseDb().execute(
       `
         INSERT INTO notifications
@@ -99,9 +105,10 @@ const createNotificationLog = async ({
           subject,
           message,
           status,
-          provider
+          provider,
+          scheduled_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
       `,
       [
         userId,
@@ -113,6 +120,7 @@ const createNotificationLog = async ({
         subject,
         message,
         provider,
+        normalizedScheduledAt,
       ]
     );
 
@@ -125,6 +133,76 @@ const createNotificationLog = async ({
 
     return null;
   }
+};
+
+const ensureNotificationScheduleColumns = async () => {
+  try {
+    const [rows] = await promiseDb().execute(
+      "SHOW COLUMNS FROM notifications LIKE 'scheduled_at'"
+    );
+
+    if (rows.length === 0) {
+      await promiseDb().execute(
+        "ALTER TABLE notifications ADD COLUMN scheduled_at DATETIME NULL AFTER sent_at"
+      );
+    }
+  } catch (error) {
+    console.error(
+      "NOTIFICATION SCHEDULE COLUMN ERROR:",
+      error.message
+    );
+  }
+};
+
+const scheduleNotification = async ({
+  userId = null,
+  orderId = null,
+  returnId = null,
+  channel,
+  event,
+  recipient = null,
+  subject = null,
+  message = null,
+  provider = null,
+  scheduledAt,
+}) => {
+  if (!channel || !event) {
+    throw new Error(
+      "channel and event are required to schedule a notification"
+    );
+  }
+
+  if (!scheduledAt) {
+    throw new Error(
+      "scheduledAt is required to schedule a notification"
+    );
+  }
+
+  const date = new Date(scheduledAt);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(
+      "scheduledAt must be a valid ISO date string"
+    );
+  }
+
+  const logId = await createNotificationLog({
+    userId,
+    orderId,
+    returnId,
+    channel,
+    event,
+    recipient,
+    subject,
+    message,
+    provider,
+    scheduledAt: date,
+  });
+
+  return {
+    id: logId,
+    scheduledAt: date.toISOString(),
+  };
 };
 
 // =====================================================
@@ -642,7 +720,9 @@ const dispatchEmailChannel = async ({
 //
 // notifyOrderEvent({
 //   event: "order_shipped",
-//   order, user, extra, channels, returnId
+//   order, user, extra, channels, returnId,
+//   customMessage  -> optional, diya gaya ho to SMS/WhatsApp
+//                     me template ki jagah yehi text jaata hai
 // })
 //
 // Ye function kabhi throw nahi karta.
@@ -656,6 +736,7 @@ const notifyOrderEvent = async ({
   extra = {},
   channels = ["email", "sms", "whatsapp"],
   returnId = null,
+  customMessage = null,
 }) => {
   const template = getNotificationEvent(event);
 
@@ -693,13 +774,19 @@ const notifyOrderEvent = async ({
     ? template.subject(order)
     : `Apple Blossom - ${event}`;
 
-  const smsText = template.sms
-    ? template.sms(order)
-    : subject;
+  // Custom message diya gaya ho to wahi bhejo
+  // (SMS / WhatsApp test ke liye)
+  const smsText = customMessage
+    ? String(customMessage)
+    : template.sms
+      ? template.sms(order)
+      : subject;
 
-  const whatsappText = template.whatsapp
-    ? template.whatsapp(order)
-    : smsText;
+  const whatsappText = customMessage
+    ? String(customMessage)
+    : template.whatsapp
+      ? template.whatsapp(order)
+      : smsText;
 
   for (const channel of channels) {
     // -------------------------------
@@ -772,6 +859,254 @@ const notifyOrderEvent = async ({
 };
 
 // =====================================================
+// DUE-DATE NOTIFICATION PROCESSOR
+// =====================================================
+
+const dispatchScheduledNotification = async (
+  notification
+) => {
+  if (!notification) {
+    return {
+      channel: null,
+      status: "skipped",
+      reason: "Notification not found",
+    };
+  }
+
+  const {
+    channel,
+    recipient,
+    subject,
+    message,
+    event,
+    id,
+  } = notification;
+
+  if (!channel || !recipient) {
+    await updateNotificationLog(id, {
+      status: "skipped",
+      errorMessage: "Recipient or channel missing",
+    });
+
+    return {
+      channel,
+      status: "skipped",
+      reason: "Recipient or channel missing",
+    };
+  }
+
+  if (channel === "email") {
+    try {
+      const sent = await sendEmailMessage({
+        to: recipient,
+        subject: subject || `Apple Blossom - ${event}`,
+        html: String(message || "").includes("<")
+          ? String(message)
+          : `<p>${String(message || "")}</p>`,
+        text: String(message || ""),
+      });
+
+      await updateNotificationLog(id, {
+        status: "sent",
+        provider: sent.provider,
+        providerMessageId: sent.messageId,
+        sentAt: true,
+      });
+
+      return {
+        channel: "email",
+        status: "sent",
+        to: recipient,
+      };
+    } catch (error) {
+      await updateNotificationLog(id, {
+        status: "failed",
+        errorMessage: error.message,
+      });
+
+      return {
+        channel: "email",
+        status: "failed",
+        error: error.message,
+      };
+    }
+  }
+
+  if (channel === "sms") {
+    try {
+      const sent = await sendSmsMessage({
+        to: recipient,
+        message: message || subject || event,
+      });
+
+      if (sent.skipped) {
+        await updateNotificationLog(id, {
+          status: "skipped",
+          errorMessage: sent.reason,
+        });
+
+        return {
+          channel: "sms",
+          status: "skipped",
+          reason: sent.reason,
+        };
+      }
+
+      await updateNotificationLog(id, {
+        status: "sent",
+        provider: sent.provider,
+        providerMessageId: sent.messageId,
+        sentAt: true,
+      });
+
+      return {
+        channel: "sms",
+        status: "sent",
+        to: recipient,
+      };
+    } catch (error) {
+      await updateNotificationLog(id, {
+        status: "failed",
+        errorMessage: error.message,
+      });
+
+      return {
+        channel: "sms",
+        status: "failed",
+        error: error.message,
+      };
+    }
+  }
+
+  if (channel === "whatsapp") {
+    try {
+      const sent = await sendWhatsappMessage({
+        to: recipient,
+        message: message || subject || event,
+      });
+
+      if (sent.skipped) {
+        await updateNotificationLog(id, {
+          status: "skipped",
+          errorMessage: sent.reason,
+        });
+
+        return {
+          channel: "whatsapp",
+          status: "skipped",
+          reason: sent.reason,
+        };
+      }
+
+      await updateNotificationLog(id, {
+        status: "sent",
+        provider: sent.provider,
+        providerMessageId: sent.messageId,
+        sentAt: true,
+      });
+
+      return {
+        channel: "whatsapp",
+        status: "sent",
+        to: recipient,
+      };
+    } catch (error) {
+      await updateNotificationLog(id, {
+        status: "failed",
+        errorMessage: error.message,
+      });
+
+      return {
+        channel: "whatsapp",
+        status: "failed",
+        error: error.message,
+      };
+    }
+  }
+
+  await updateNotificationLog(id, {
+    status: "skipped",
+    errorMessage: `Unsupported channel: ${channel}`,
+  });
+
+  return {
+    channel,
+    status: "skipped",
+    reason: `Unsupported channel: ${channel}`,
+  };
+};
+
+const getDueNotifications = async ({
+  limit = 50,
+} = {}) => {
+  await ensureNotificationScheduleColumns();
+
+  const safeLimit = Math.min(
+    Math.max(Number(limit) || 50, 1),
+    200
+  );
+
+  // NOTE: MySQL prepared statement me LIMIT ? placeholder
+  // support nahi karta ("Incorrect arguments to
+  // mysqld_stmt_execute"), isliye sanitized number
+  // inline karte hain - injection safe hai kyunki
+  // safeLimit Number() se coerce + clamp kiya hua hai.
+  const [rows] = await promiseDb().execute(
+    `
+      SELECT *
+      FROM notifications
+      WHERE status = 'pending'
+        AND scheduled_at IS NOT NULL
+        AND scheduled_at <= NOW()
+      ORDER BY scheduled_at ASC
+      LIMIT ${safeLimit}
+    `
+  );
+
+  return rows;
+};
+
+const processDueNotifications = async ({
+  limit = 50,
+} = {}) => {
+  try {
+    const notifications = await getDueNotifications({
+      limit,
+    });
+
+    const results = [];
+
+    for (const notification of notifications) {
+      const result = await dispatchScheduledNotification(
+        notification
+      );
+      results.push({
+        id: notification.id,
+        ...result,
+      });
+    }
+
+    return {
+      processed: notifications.length,
+      notifications,
+      results,
+    };
+  } catch (error) {
+    console.error(
+      "PROCESS DUE NOTIFICATIONS ERROR:",
+      error.message
+    );
+
+    return {
+      processed: 0,
+      notifications: [],
+      results: [],
+      error: error.message,
+    };
+  }
+};
+
+// =====================================================
 // SAFE WRAPPER
 // =====================================================
 
@@ -805,6 +1140,9 @@ module.exports = {
   sendWhatsappMessage,
   createNotificationLog,
   updateNotificationLog,
+  scheduleNotification,
+  getDueNotifications,
+  processDueNotifications,
   isSmsEnabled,
   isWhatsappEnabled,
 };

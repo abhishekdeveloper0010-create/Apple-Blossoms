@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 const path = require("path");
 
 require("dotenv").config();
@@ -23,6 +24,7 @@ const returnRoutes = require("./routes/returnRoutes");
 const shippingRoutes = require("./routes/shippingRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const checkoutRoutes = require("./routes/checkoutRoutes");
 
 // =====================================================
 // STEP 4 : CONFIG (startup diagnostics ke liye)
@@ -39,6 +41,9 @@ const {
 } = require("./config/notify");
 
 const { google } = require("googleapis");
+const {
+  processDueNotifications,
+} = require("./services/notificationService");
 
 const app = express();
 
@@ -84,8 +89,53 @@ app.get("/oauth2callback", async (req, res) => {
     console.log(tokens.refresh_token);
     console.log("==============================\n");
 
+    // -------------------------------
+    // AUTO-SAVE : token seedha .env me
+    // (copy-paste ki zaroorat nahi)
+    // -------------------------------
+
+    if (tokens.refresh_token) {
+      const envPath = path.join(__dirname, ".env");
+      const key = "GOOGLE_REFRESH_TOKEN";
+      const line = `${key}=${tokens.refresh_token}`;
+
+      let envContent = "";
+      if (fs.existsSync(envPath)) {
+        envContent = fs.readFileSync(envPath, "utf8");
+      }
+
+      const pattern = new RegExp(`^${key}=.*$`, "m");
+
+      if (pattern.test(envContent)) {
+        envContent = envContent.replace(pattern, line);
+      } else {
+        const suffix =
+          envContent.endsWith("\n") || envContent === ""
+            ? ""
+            : "\n";
+        envContent = `${envContent}${suffix}${line}\n`;
+      }
+
+      fs.writeFileSync(envPath, envContent, "utf8");
+
+      console.log(
+        "AUTO-SAVED: GOOGLE_REFRESH_TOKEN .env me save ho gaya."
+      );
+
+      return res.send(
+        "<h2>✅ Token save ho gaya!</h2>" +
+          "<p>Naya GOOGLE_REFRESH_TOKEN automatically <b>.env</b> me save ho gaya.</p>" +
+          "<h3>Ab bas yeh karo:</h3>" +
+          "<ol>" +
+          "<li>Server terminal me <b>Ctrl+C</b> dabao (server band karo)</li>" +
+          "<li>Phir <b>node app.js</b> chalao</li>" +
+          "<li>Admin → Notifications → Send Test (email)</li>" +
+          "</ol>"
+      );
+    }
+
     res.send(
-      "Google authorization successful. Check your terminal."
+      "Google authorization successful, par refresh token nahi mila. Dobara try karo (same URL kholo)."
     );
   } catch (error) {
     console.error(
@@ -152,6 +202,21 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 // =====================================================
+// STEP 6 : BUSINESS ESSENTIALS
+// =====================================================
+
+// CHECKOUT (pincode check + shipping/GST quote)
+app.use("/api/checkout", checkoutRoutes);
+
+// =====================================================
+// STEP 5 : ADMIN PANEL (dashboard / reports / customers /
+//          payments / images)
+// =====================================================
+
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/api/admin", adminRoutes);
+
+// =====================================================
 // PRODUCT IMAGES
 // =====================================================
 
@@ -185,10 +250,30 @@ app.get("/", (req, res) => {
 // START SERVER
 // =====================================================
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(
     `Server running on http://localhost:${PORT}`
   );
+
+  try {
+    await processDueNotifications({ limit: 20 });
+  } catch (error) {
+    console.error(
+      "INITIAL DUE NOTIFICATION CHECK ERROR:",
+      error.message
+    );
+  }
+
+  setInterval(() => {
+    processDueNotifications({ limit: 20 }).catch(
+      (error) => {
+        console.error(
+          "SCHEDULED NOTIFICATION CHECK ERROR:",
+          error.message
+        );
+      }
+    );
+  }, 60000);
 
   // =====================================================
   // STEP 4 : ORDER OPERATIONS - CONFIG DIAGNOSTICS
