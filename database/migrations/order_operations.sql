@@ -1,28 +1,3 @@
--- =====================================================
--- APPLE BLOSSOM
--- STEP 4 : ORDER OPERATIONS
---   1) Return system
---   2) Admin return approval / rejection
---   3) Actual refund
---   4) Shipping integration
---   5) Tracking number
---   6) Invoice / PDF
---   7) Email / SMS / WhatsApp notification
---
--- SAFE TO RUN MULTIPLE TIMES (idempotent)
--- Sirf naye tables aur naye columns add hote hain.
--- Koi purana data delete / update nahi hota.
---
--- RUN:
---   mysql -u root -p appleblossom < database/migrations/step4_order_operations.sql
--- =====================================================
-
--- =====================================================
--- HELPER : ADD COLUMN ONLY IF MISSING
--- MySQL me "ADD COLUMN IF NOT EXISTS" nahi hota,
--- isliye ye chhota helper procedure use kiya gaya hai.
--- =====================================================
-
 DROP PROCEDURE IF EXISTS ab_add_column;
 
 DELIMITER $$
@@ -41,267 +16,152 @@ BEGIN
       AND TABLE_NAME = p_table
       AND COLUMN_NAME = p_column
   ) THEN
-
     SET @ab_sql = CONCAT('ALTER TABLE `', p_table, '` ADD COLUMN ', p_ddl);
-
     PREPARE ab_stmt FROM @ab_sql;
     EXECUTE ab_stmt;
     DEALLOCATE PREPARE ab_stmt;
-
   END IF;
 END$$
 
 DELIMITER ;
 
--- =====================================================
--- 1. USERS : PHONE (SMS / WHATSAPP KE LIYE)
--- =====================================================
-
-CALL ab_add_column(
-  'users',
-  'phone',
-  '`phone` VARCHAR(20) DEFAULT NULL'
-);
-
-CALL ab_add_column(
-  'users',
-  'phone_verified',
-  '`phone_verified` TINYINT(1) NOT NULL DEFAULT 0'
-);
-
--- =====================================================
--- 2. ORDERS : SHIPPING / TRACKING FIELDS
--- =====================================================
-
-CALL ab_add_column('orders', 'courier_name',   '`courier_name` VARCHAR(100) DEFAULT NULL');
+CALL ab_add_column('users', 'phone', '`phone` VARCHAR(20) DEFAULT NULL');
+CALL ab_add_column('users', 'phone_verified', '`phone_verified` TINYINT(1) NOT NULL DEFAULT 0');
+CALL ab_add_column('orders', 'courier_name', '`courier_name` VARCHAR(100) DEFAULT NULL');
 CALL ab_add_column('orders', 'tracking_number', '`tracking_number` VARCHAR(120) DEFAULT NULL');
-CALL ab_add_column('orders', 'tracking_url',    '`tracking_url` VARCHAR(500) DEFAULT NULL');
-CALL ab_add_column('orders', 'shipped_at',      '`shipped_at` DATETIME DEFAULT NULL');
-CALL ab_add_column('orders', 'delivered_at',    '`delivered_at` DATETIME DEFAULT NULL');
-
--- =====================================================
--- 3. ORDERS : REFUND SUMMARY FIELDS
--- =====================================================
-
+CALL ab_add_column('orders', 'tracking_url', '`tracking_url` VARCHAR(500) DEFAULT NULL');
+CALL ab_add_column('orders', 'shipped_at', '`shipped_at` DATETIME DEFAULT NULL');
+CALL ab_add_column('orders', 'delivered_at', '`delivered_at` DATETIME DEFAULT NULL');
 CALL ab_add_column('orders', 'refund_amount', '`refund_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00');
 CALL ab_add_column('orders', 'refund_status', '`refund_status` VARCHAR(40) DEFAULT NULL');
-
--- =====================================================
--- 4. ORDER ITEMS : RETURN / RMA EXTRA FIELDS
--- (kuch fields pehle se maujood hain)
--- =====================================================
-
-CALL ab_add_column('order_items', 'rma_quantity',   '`rma_quantity` INT NOT NULL DEFAULT 1');
+CALL ab_add_column('order_items', 'rma_quantity', '`rma_quantity` INT NOT NULL DEFAULT 1');
 CALL ab_add_column('order_items', 'rma_admin_note', '`rma_admin_note` TEXT DEFAULT NULL');
-CALL ab_add_column('order_items', 'rma_reviewed_at','`rma_reviewed_at` DATETIME DEFAULT NULL');
-CALL ab_add_column('order_items', 'rma_reviewed_by','`rma_reviewed_by` INT DEFAULT NULL');
-
-
--- =====================================================
--- 5. ORDER RETURNS  (Feature 1 & 2)
--- Ek row = ek item ka return request
--- =====================================================
+CALL ab_add_column('order_items', 'rma_reviewed_at', '`rma_reviewed_at` DATETIME DEFAULT NULL');
+CALL ab_add_column('order_items', 'rma_reviewed_by', '`rma_reviewed_by` INT DEFAULT NULL');
 
 CREATE TABLE IF NOT EXISTS `order_returns` (
   `id` int NOT NULL AUTO_INCREMENT,
-
   `order_id` int NOT NULL,
   `order_item_id` int NOT NULL,
   `user_id` int NOT NULL,
   `product_id` int DEFAULT NULL,
   `product_name` varchar(255) DEFAULT NULL,
   `quantity` int NOT NULL DEFAULT 1,
-
   `reason` text NOT NULL,
   `customer_note` text DEFAULT NULL,
   `image` varchar(500) DEFAULT NULL,
-
-  -- Pending / Approved / Rejected / Picked Up / Refunded / Completed / Cancelled
   `status` varchar(40) NOT NULL DEFAULT 'Pending',
-
   `admin_note` text DEFAULT NULL,
   `reviewed_by` int DEFAULT NULL,
   `reviewed_at` datetime DEFAULT NULL,
-
   `pickup_date` datetime DEFAULT NULL,
   `picked_up_at` datetime DEFAULT NULL,
-
   `refund_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `refund_method` varchar(40) DEFAULT NULL,
   `refund_status` varchar(40) DEFAULT NULL,
   `refund_reference` varchar(150) DEFAULT NULL,
   `refunded_at` datetime DEFAULT NULL,
-
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
   PRIMARY KEY (`id`),
   KEY `order_returns_order_id` (`order_id`),
   KEY `order_returns_item_id` (`order_item_id`),
   KEY `order_returns_user_id` (`user_id`),
   KEY `order_returns_status` (`status`),
-  CONSTRAINT `order_returns_order_fk`
-    FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+  CONSTRAINT `order_returns_order_fk` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- =====================================================
--- 6. REFUNDS  (Feature 3)
--- Har refund ka permanent record
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS `refunds` (
   `id` int NOT NULL AUTO_INCREMENT,
-
   `order_id` int NOT NULL,
   `return_id` int DEFAULT NULL,
   `user_id` int NOT NULL,
-
   `amount` decimal(10,2) NOT NULL,
-
-  -- wallet / razorpay / manual / cod / upi
   `method` varchar(40) NOT NULL DEFAULT 'manual',
-
-  -- Pending / Processing / Completed / Failed
   `status` varchar(40) NOT NULL DEFAULT 'Pending',
-
   `reference_id` varchar(150) DEFAULT NULL,
   `razorpay_payment_id` varchar(120) DEFAULT NULL,
   `razorpay_refund_id` varchar(120) DEFAULT NULL,
-
   `notes` text DEFAULT NULL,
   `error_message` text DEFAULT NULL,
-
   `processed_by` int DEFAULT NULL,
   `processed_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
   PRIMARY KEY (`id`),
   KEY `refunds_order_id` (`order_id`),
   KEY `refunds_return_id` (`return_id`),
   KEY `refunds_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- =====================================================
--- 7. SHIPMENTS  (Feature 4 & 5)
--- Courier + tracking number (AWB) ka record
--- =====================================================
-
 CREATE TABLE IF NOT EXISTS `shipments` (
   `id` int NOT NULL AUTO_INCREMENT,
-
   `order_id` int NOT NULL,
   `user_id` int DEFAULT NULL,
-
   `provider` varchar(40) NOT NULL DEFAULT 'manual',
   `provider_order_id` varchar(120) DEFAULT NULL,
   `provider_shipment_id` varchar(120) DEFAULT NULL,
-
   `courier_name` varchar(100) DEFAULT NULL,
   `courier_code` varchar(60) DEFAULT NULL,
-
-  -- Tracking number / AWB
   `awb_number` varchar(120) DEFAULT NULL,
   `tracking_url` varchar(500) DEFAULT NULL,
-
-  -- Created / Picked Up / In Transit / Out for Delivery / Delivered / RTO / Cancelled
   `status` varchar(40) NOT NULL DEFAULT 'Created',
-
   `weight_grams` int DEFAULT NULL,
   `shipping_cost` decimal(10,2) DEFAULT NULL,
   `payment_mode` varchar(30) DEFAULT NULL,
-
   `label_url` varchar(500) DEFAULT NULL,
   `manifest_url` varchar(500) DEFAULT NULL,
-
   `estimated_delivery` date DEFAULT NULL,
   `shipped_at` datetime DEFAULT NULL,
   `delivered_at` datetime DEFAULT NULL,
   `last_tracked_at` datetime DEFAULT NULL,
-
   `provider_response` json DEFAULT NULL,
-
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
   PRIMARY KEY (`id`),
   KEY `shipments_order_id` (`order_id`),
   KEY `shipments_awb` (`awb_number`),
   KEY `shipments_status` (`status`),
-  CONSTRAINT `shipments_order_fk`
-    FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+  CONSTRAINT `shipments_order_fk` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- =====================================================
--- 8. SHIPMENT TRACKING EVENTS
--- Courier ke checkpoints (In Transit, Out for Delivery ...)
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS `shipment_tracking_events` (
   `id` int NOT NULL AUTO_INCREMENT,
-
   `shipment_id` int NOT NULL,
   `order_id` int DEFAULT NULL,
-
   `status` varchar(80) DEFAULT NULL,
   `location` varchar(180) DEFAULT NULL,
   `message` varchar(500) DEFAULT NULL,
   `event_time` datetime DEFAULT NULL,
-
   `raw` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-
   PRIMARY KEY (`id`),
   KEY `shipment_events_shipment_id` (`shipment_id`),
-  CONSTRAINT `shipment_events_shipment_fk`
-    FOREIGN KEY (`shipment_id`) REFERENCES `shipments` (`id`) ON DELETE CASCADE
+  CONSTRAINT `shipment_events_shipment_fk` FOREIGN KEY (`shipment_id`) REFERENCES `shipments` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- =====================================================
--- 9. NOTIFICATIONS LOG  (Feature 7)
--- Email / SMS / WhatsApp ka har message yahan record hota hai
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` int NOT NULL AUTO_INCREMENT,
-
   `user_id` int DEFAULT NULL,
   `order_id` int DEFAULT NULL,
   `return_id` int DEFAULT NULL,
-
-  -- email / sms / whatsapp
   `channel` varchar(20) NOT NULL,
-
-  -- order_placed / order_shipped / return_approved ...
   `event` varchar(60) NOT NULL,
-
   `recipient` varchar(255) DEFAULT NULL,
   `subject` varchar(255) DEFAULT NULL,
   `message` text DEFAULT NULL,
-
-  -- pending / sent / failed / skipped
   `status` varchar(20) NOT NULL DEFAULT 'pending',
-
   `provider` varchar(40) DEFAULT NULL,
   `provider_message_id` varchar(150) DEFAULT NULL,
   `error_message` text DEFAULT NULL,
-
   `sent_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-
   PRIMARY KEY (`id`),
   KEY `notifications_user_id` (`user_id`),
   KEY `notifications_order_id` (`order_id`),
   KEY `notifications_channel` (`channel`),
   KEY `notifications_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- =====================================================
--- 10. PURANE RETURN REQUESTS KO NAYE TABLE ME LE AANA
--- (order_items me rma_requested = 1 wale items copy honge)
--- Ye statement sirf un records ko lega jo abhi tak
--- order_returns me nahi hain.
--- =====================================================
 
 INSERT INTO `order_returns` (
   `order_id`,
@@ -334,7 +194,4 @@ WHERE
     WHERE r.`order_item_id` = oi.`id`
   );
 
--- =====================================================
--- DONE
--- =====================================================
 DROP PROCEDURE IF EXISTS ab_add_column;

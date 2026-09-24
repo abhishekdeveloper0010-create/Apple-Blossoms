@@ -430,6 +430,7 @@ UNLOCK TABLES;
 -- GIFT CARDS
 -- =====================================================
 
+DROP TABLE IF EXISTS `user_gift_cards`;
 DROP TABLE IF EXISTS `gift_cards`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -457,7 +458,6 @@ CREATE TABLE `gift_cards` (
 -- USER GIFT CARDS (claimed by users)
 -- =====================================================
 
-DROP TABLE IF EXISTS `user_gift_cards`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_gift_cards` (
@@ -488,7 +488,6 @@ CREATE TABLE `wallet` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
   CONSTRAINT `wallet_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -518,6 +517,8 @@ CREATE TABLE `wallet_transactions` (
 -- SALES & CAMPAIGNS
 -- =====================================================
 
+DROP TABLE IF EXISTS `campaign_products`;
+DROP TABLE IF EXISTS `campaign_categories`;
 DROP TABLE IF EXISTS `campaigns`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -546,7 +547,6 @@ CREATE TABLE `campaigns` (
 -- CAMPAIGN CATEGORIES
 -- =====================================================
 
-DROP TABLE IF EXISTS `campaign_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `campaign_categories` (
@@ -564,7 +564,6 @@ CREATE TABLE `campaign_categories` (
 -- CAMPAIGN PRODUCTS
 -- =====================================================
 
-DROP TABLE IF EXISTS `campaign_products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `campaign_products` (
@@ -579,12 +578,38 @@ CREATE TABLE `campaign_products` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- =====================================================
+-- COUPONS
+-- =====================================================
+
+DROP TABLE IF EXISTS `coupons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `coupons` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `discount_type` enum('percentage','fixed') NOT NULL,
+  `discount_value` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `max_discount` decimal(10,2) DEFAULT NULL,
+  `min_order_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `usage_limit` int DEFAULT NULL,
+  `used_count` int NOT NULL DEFAULT '0',
+  `start_at` datetime DEFAULT NULL,
+  `end_at` datetime DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+-- =====================================================
 -- ORDER COUPON COLUMNS
 -- =====================================================
 
-ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_id` int DEFAULT NULL AFTER `total_amount`;
-ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_discount` decimal(10,2) DEFAULT '0.00' AFTER `coupon_id`;
-ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `coupon_code` varchar(50) DEFAULT NULL AFTER `coupon_discount`;
+ALTER TABLE `orders` ADD COLUMN `coupon_id` int DEFAULT NULL AFTER `total_amount`;
+ALTER TABLE `orders` ADD COLUMN `coupon_discount` decimal(10,2) DEFAULT '0.00' AFTER `coupon_id`;
+ALTER TABLE `orders` ADD COLUMN `coupon_code` varchar(50) DEFAULT NULL AFTER `coupon_discount`;
 ALTER TABLE `orders` ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE SET NULL;
 
--- Dump completed on 2026-09-10 10:35:35
+
