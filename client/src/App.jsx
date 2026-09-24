@@ -17,6 +17,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import ShippingPolicy from "./pages/ShippingPolicy";
+import ReturnRefundPolicy from "./pages/ReturnRefundPolicy";
 import ProductDetail from "./pages/ProductDetail";
 
 // =====================================================
@@ -55,6 +57,17 @@ import CampaignManagement from "./pages/admin/CampaignManagement";
 import ReturnManagement from "./pages/admin/ReturnManagement";
 import ShipmentManagement from "./pages/admin/ShipmentManagement";
 import NotificationManagement from "./pages/admin/NotificationManagement";
+
+// =====================================================
+// STEP 5 : ADMIN PANEL PAGES
+// =====================================================
+
+import SalesDashboard from "./pages/admin/SalesDashboard";
+import RevenueReports from "./pages/admin/RevenueReports";
+import CustomerManagement from "./pages/admin/CustomerManagement";
+import PaymentDetails from "./pages/admin/PaymentDetails";
+import CategoryManagement from "./pages/admin/CategoryManagement";
+import ImageManagement from "./pages/admin/ImageManagement";
 
 // =====================================================
 // CHECK TOKEN
@@ -223,6 +236,20 @@ function App() {
         <Route path="/terms" element={<Terms />} />
 
         <Route path="/privacy" element={<Privacy />} />
+
+        {/* =================================================
+            STEP 6 : POLICY PAGES
+        ================================================= */}
+
+        <Route
+          path="/shipping-policy"
+          element={<ShippingPolicy />}
+        />
+
+        <Route
+          path="/return-refund-policy"
+          element={<ReturnRefundPolicy />}
+        />
 
         {/* =================================================
             LOGIN
@@ -453,6 +480,90 @@ function App() {
           element={
             <AdminRoute>
               <NotificationManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - SALES DASHBOARD (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/sales-dashboard"
+          element={
+            <AdminRoute>
+              <SalesDashboard />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - REVENUE REPORTS (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/reports"
+          element={
+            <AdminRoute>
+              <RevenueReports />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - CUSTOMER MANAGEMENT (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/customers"
+          element={
+            <AdminRoute>
+              <CustomerManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - PAYMENT DETAILS (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/payments"
+          element={
+            <AdminRoute>
+              <PaymentDetails />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - CATEGORY MANAGEMENT (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/categories"
+          element={
+            <AdminRoute>
+              <CategoryManagement />
+            </AdminRoute>
+          }
+        />
+
+        {/* =================================================
+
+            ADMIN - IMAGE MANAGEMENT (STEP 5)
+        ================================================= */}
+
+        <Route
+          path="/admin/images"
+          element={
+            <AdminRoute>
+              <ImageManagement />
             </AdminRoute>
           }
         />

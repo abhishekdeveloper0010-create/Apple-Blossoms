@@ -220,6 +220,24 @@ function Footer() {
 
               <li>
                 <Link
+                  to="/shipping-policy"
+                  className="transition hover:text-sky-300"
+                >
+                  Shipping Policy
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/return-refund-policy"
+                  className="transition hover:text-sky-300"
+                >
+                  Return & Refund Policy
+                </Link>
+              </li>
+
+              <li>
+                <Link
                   to="/cart"
                   className="transition hover:text-sky-300"
                 >
@@ -413,6 +431,18 @@ function Footer() {
 
             <Link to="/terms">
               Term of Service
+            </Link>
+
+            <span>|</span>
+
+            <Link to="/shipping-policy">
+              Shipping Policy
+            </Link>
+
+            <span>|</span>
+
+            <Link to="/return-refund-policy">
+              Return & Refund
             </Link>
 
             <span>|</span>

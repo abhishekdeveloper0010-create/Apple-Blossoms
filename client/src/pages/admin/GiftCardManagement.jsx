@@ -64,7 +64,7 @@ function GiftCardManagement() {
       <div className="w-full">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <button onClick={() => navigate("/admin")} className="mb-2 text-sm text-cyan-700 hover:underline">Back to Dashboard</button>
+            <button onClick={() => navigate("/admin")} className="mb-2 inline-flex items-center text-sm font-semibold text-cyan-700 transition hover:text-cyan-900">← Back to Dashboard</button>
             <h1 className="text-3xl font-bold text-slate-900">Gift Card Management</h1>
             <p className="mt-1 text-slate-500">Create and manage gift cards</p>
           </div>

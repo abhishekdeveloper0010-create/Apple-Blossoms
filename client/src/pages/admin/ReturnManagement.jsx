@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const API_URL =
-  import.meta.env.VITE_SERVER_API_URL ||
-  "http://localhost:4000/api";
+  import.meta.env.VITE_SERVER_API_URL || "http://localhost:4000/api";
 
 // =====================================================
 // STEP 4 : RETURN MANAGEMENT  (Feature 1 & 2 & 3)
@@ -61,8 +60,7 @@ function ReturnManagement() {
   });
 
   const refundMethods =
-    Array.isArray(settings.refundMethods) &&
-    settings.refundMethods.length
+    Array.isArray(settings.refundMethods) && settings.refundMethods.length
       ? settings.refundMethods
       : ["wallet", "razorpay", "manual", "cod"];
 
@@ -75,21 +73,16 @@ function ReturnManagement() {
       setLoading(true);
       setError("");
 
-      const query = status
-        ? `?status=${encodeURIComponent(status)}`
-        : "";
+      const query = status ? `?status=${encodeURIComponent(status)}` : "";
 
-      const response = await fetch(
-        `${API_URL}/returns${query}`,
-        { headers: headers() }
-      );
+      const response = await fetch(`${API_URL}/returns${query}`, {
+        headers: headers(),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to load returns"
-        );
+        throw new Error(data.message || "Failed to load returns");
       }
 
       setReturns(data.returns || []);
@@ -102,10 +95,9 @@ function ReturnManagement() {
 
   const loadSettings = async () => {
     try {
-      const response = await fetch(
-        `${API_URL}/returns/settings`,
-        { headers: headers() }
-      );
+      const response = await fetch(`${API_URL}/returns/settings`, {
+        headers: headers(),
+      });
 
       const data = await response.json();
 
@@ -137,14 +129,9 @@ function ReturnManagement() {
     setForm({
       ...emptyForm,
       refundAmount:
-        Number(row.refund_amount) > 0
-          ? String(row.refund_amount)
-          : "",
-      refundMethod:
-        row.refund_method || refundMethods[0] || "wallet",
-      pickupDate: row.pickup_date
-        ? String(row.pickup_date).slice(0, 10)
-        : "",
+        Number(row.refund_amount) > 0 ? String(row.refund_amount) : "",
+      refundMethod: row.refund_method || refundMethods[0] || "wallet",
+      pickupDate: row.pickup_date ? String(row.pickup_date).slice(0, 10) : "",
     });
   };
 
@@ -154,37 +141,26 @@ function ReturnManagement() {
   };
 
   const markPickedUp = async (row) => {
-    if (
-      !window.confirm(
-        `Mark return #${row.id} as picked up?`
-      )
-    ) {
+    if (!window.confirm(`Mark return #${row.id} as picked up?`)) {
       return;
     }
 
     try {
       setError("");
 
-      const response = await fetch(
-        `${API_URL}/returns/${row.id}/picked-up`,
-        {
-          method: "PATCH",
-          headers: headers(true),
-          body: JSON.stringify({}),
-        }
-      );
+      const response = await fetch(`${API_URL}/returns/${row.id}/picked-up`, {
+        method: "PATCH",
+        headers: headers(true),
+        body: JSON.stringify({}),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to update pickup"
-        );
+        throw new Error(data.message || "Failed to update pickup");
       }
 
-      setMessage(
-        data.message || "Return marked as picked up"
-      );
+      setMessage(data.message || "Return marked as picked up");
 
       loadReturns(statusFilter);
     } catch (err) {
@@ -218,27 +194,22 @@ function ReturnManagement() {
         body.pickupDate = form.pickupDate || null;
 
         if (form.refundAmount !== "") {
-          body.refundAmount = Number(
-            form.refundAmount
-          );
+          body.refundAmount = Number(form.refundAmount);
         }
       }
 
       // -------------------------------
       // REJECT
       // -------------------------------
-
       else if (mode === "reject") {
         url = `${API_URL}/returns/${row.id}/reject`;
 
-        body.adminNote =
-          form.adminNote || "Rejected by admin";
+        body.adminNote = form.adminNote || "Rejected by admin";
       }
 
       // -------------------------------
       // ACTUAL REFUND
       // -------------------------------
-
       else {
         url = `${API_URL}/returns/${row.id}/refund`;
         method = "POST";
@@ -278,16 +249,16 @@ function ReturnManagement() {
   // HELPERS
   // ---------------------------------------------------
 
-  const money = (value) =>
-    `₹${Number(value || 0).toFixed(2)}`;
+  const money = (value) => `₹${Number(value || 0).toFixed(2)}`;
 
   const formatDate = (value) => {
     if (!value) return "-";
 
-    return new Date(value).toLocaleDateString(
-      "en-IN",
-      { day: "numeric", month: "short", year: "numeric" }
-    );
+    return new Date(value).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const statusClass = (status) => {
@@ -325,11 +296,9 @@ function ReturnManagement() {
   return (
     <main className="min-h-screen w-full bg-slate-50 px-3 py-4 sm:px-5 sm:py-6 md:px-7 lg:px-10 xl:px-12 2xl:px-16">
       <div className="w-full">
-
         {/* ================= HEADER ================= */}
 
         <div className="mb-5 sm:mb-6">
-
           <button
             onClick={() => navigate("/admin")}
             className="mb-4 inline-flex items-center text-sm font-semibold text-cyan-700 transition hover:text-cyan-900"
@@ -355,13 +324,11 @@ function ReturnManagement() {
               ↻ Refresh
             </button>
           </div>
-
         </div>
 
         {/* ================= FILTERS ================= */}
-
+        <br />
         <div className="mb-5 flex flex-wrap items-center gap-2">
-
           {statusFilters.map((status) => (
             <button
               key={status || "all"}
@@ -381,8 +348,8 @@ function ReturnManagement() {
               Return window: {settings.returnWindowDays} days
             </span>
           )}
-
         </div>
+        <br />
 
         {/* ================= MESSAGE ================= */}
 
@@ -440,13 +407,11 @@ function ReturnManagement() {
         ) : (
           /* ================= LIST ================= */
           <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-
             {returns.map((row) => (
               <div
                 key={row.id}
                 className="rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5"
               >
-
                 {/* CARD HEADER */}
 
                 <div className="flex items-start justify-between gap-3">
@@ -463,7 +428,7 @@ function ReturnManagement() {
 
                   <span
                     className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(
-                      row.status
+                      row.status,
                     )}`}
                   >
                     {row.status}
@@ -498,9 +463,7 @@ function ReturnManagement() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-slate-100 p-3">
-                    <p className="text-xs text-slate-400">
-                      Product
-                    </p>
+                    <p className="text-xs text-slate-400">Product</p>
 
                     <p className="mt-1 break-words text-sm font-semibold text-slate-800">
                       {row.product_name || `Product #${row.product_id}`}
@@ -512,9 +475,7 @@ function ReturnManagement() {
                   </div>
 
                   <div className="rounded-xl border border-slate-100 p-3">
-                    <p className="text-xs text-slate-400">
-                      Refund Amount
-                    </p>
+                    <p className="text-xs text-slate-400">Refund Amount</p>
 
                     <p className="mt-1 text-base font-bold text-cyan-700">
                       {money(row.refund_amount)}
@@ -530,9 +491,7 @@ function ReturnManagement() {
                 {/* REASON */}
 
                 <div className="mt-3 rounded-xl border border-slate-100 p-3">
-                  <p className="text-xs text-slate-400">
-                    Reason
-                  </p>
+                  <p className="text-xs text-slate-400">Reason</p>
 
                   <p className="mt-1 break-words text-sm text-slate-700">
                     {row.reason || "-"}
@@ -566,7 +525,6 @@ function ReturnManagement() {
                 {/* ACTIONS */}
 
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-
                   {row.status === "Pending" && (
                     <>
                       <button
@@ -619,20 +577,16 @@ function ReturnManagement() {
                     </button>
                   )}
 
-                  {(row.status === "Refunded" ||
-                    row.status === "Rejected") && (
+                  {(row.status === "Refunded" || row.status === "Rejected") && (
                     <span className="text-sm font-semibold text-slate-400">
                       {row.status === "Refunded"
                         ? "Refund completed"
                         : "Return rejected"}
                     </span>
                   )}
-
                 </div>
-
               </div>
             ))}
-
           </div>
         )}
 
@@ -640,9 +594,7 @@ function ReturnManagement() {
 
         {action && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center">
-
             <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl">
-
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <h2 className="text-lg font-bold text-slate-900">
                   {modalTitle}
@@ -657,7 +609,6 @@ function ReturnManagement() {
               </div>
 
               <div className="max-h-[60vh] overflow-y-auto px-5 py-5">
-
                 {/* SUMMARY */}
 
                 <div className="mb-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
@@ -670,17 +621,12 @@ function ReturnManagement() {
                   </p>
 
                   <p className="mt-1">
-                    Order{" "}
-                    {action.row.order_number ||
-                      `#${action.row.order_id}`}{" "}
+                    Order {action.row.order_number || `#${action.row.order_id}`}{" "}
                     •{" "}
-                    {action.row.customer_name ||
-                      `User #${action.row.user_id}`}
+                    {action.row.customer_name || `User #${action.row.user_id}`}
                   </p>
 
-                  <p className="mt-1">
-                    Reason: {action.row.reason || "-"}
-                  </p>
+                  <p className="mt-1">Reason: {action.row.reason || "-"}</p>
                 </div>
 
                 {error && (
@@ -690,7 +636,6 @@ function ReturnManagement() {
                 )}
 
                 <div className="grid gap-4">
-
                   {/* REFUND AMOUNT */}
 
                   {action.mode !== "reject" && (
@@ -772,9 +717,7 @@ function ReturnManagement() {
                   {/* REFUND REFERENCE */}
 
                   {action.mode === "refund" &&
-                    ["manual", "cod"].includes(
-                      form.refundMethod
-                    ) && (
+                    ["manual", "cod"].includes(form.refundMethod) && (
                       <div>
                         <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
                           Reference / UTR
@@ -842,9 +785,7 @@ function ReturnManagement() {
                       />
                     </div>
                   )}
-
                 </div>
-
               </div>
 
               <div className="flex flex-col gap-2 border-t border-slate-100 px-5 py-4 sm:flex-row sm:justify-end">
@@ -869,11 +810,9 @@ function ReturnManagement() {
                         : "Process Refund"}
                 </button>
               </div>
-
             </div>
           </div>
         )}
-
       </div>
     </main>
   );

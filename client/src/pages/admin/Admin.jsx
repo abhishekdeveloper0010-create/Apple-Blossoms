@@ -255,6 +255,162 @@ function Admin() {
             </span>
           </button>
 
+          {/* SALES DASHBOARD (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/sales-dashboard")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              📊
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Sales Dashboard
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Live revenue, orders, customers aur
+              low-stock ka overview.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              View Sales →
+            </span>
+          </button>
+
+          {/* REVENUE REPORTS (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/reports")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              📈
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Revenue Reports
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Daily / monthly revenue, top
+              products aur refund analysis.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              View Reports →
+            </span>
+          </button>
+
+          {/* CUSTOMER MANAGEMENT (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/customers")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              👥
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Customer Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Customers, unke orders, spend
+              aur details dekho.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Customers →
+            </span>
+          </button>
+
+          {/* PAYMENT DETAILS (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/payments")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              💳
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Payment Details
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              COD, UPI aur Razorpay payments
+              ka pura ledger.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              View Payments →
+            </span>
+          </button>
+
+          {/* CATEGORY MANAGEMENT (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/categories")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🗂️
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Category Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Categories add, edit, delete
+              aur unki images manage karo.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Categories →
+            </span>
+          </button>
+
+          {/* IMAGE MANAGEMENT (STEP 5) */}
+
+          <button
+            onClick={() =>
+              navigate("/admin/images")
+            }
+            className="rounded-2xl bg-white p-7 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div className="mb-5 text-4xl">
+              🖼️
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-900">
+              Image Management
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Product / category images dekho
+              aur unused delete karo.
+            </p>
+
+            <span className="mt-5 inline-block font-semibold text-cyan-700">
+              Manage Images →
+            </span>
+          </button>
+
         </div>
 
       </div>

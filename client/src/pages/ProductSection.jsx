@@ -206,12 +206,12 @@ function ProductSection({
 
   const defaultCategories = [
     "All",
-    "Shirts",
-    "Dresses",
+    "Shirt",
+    "Dress",
     "Beauty",
-    "Bangles",
+    "Bangle",
     "Shoes",
-    "Slippers",
+    "Slipper",
   ];
 
   // =====================================================

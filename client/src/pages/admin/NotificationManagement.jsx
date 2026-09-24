@@ -244,7 +244,7 @@ function NotificationManagement() {
                 Notifications
               </h1>
 
-              <p className="mt-1 text-sm text-slate-500 sm:text-base">
+              <p className="pt-1 text-sm text-slate-500 sm:text-base">
                 Email, SMS aur WhatsApp messages ka poora log.
               </p>
             </div>
@@ -258,6 +258,7 @@ function NotificationManagement() {
             >
               ↻ Refresh
             </button>
+            
           </div>
 
         </div>
@@ -265,7 +266,7 @@ function NotificationManagement() {
         {/* ================= CHANNEL STATUS ================= */}
 
         {channelList.length > 0 && (
-          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+          <div className="pt-5 grid gap-3 sm:grid-cols-3">
             {channelList.map((channel) => (
               <div
                 key={channel.key}
@@ -302,7 +303,7 @@ function NotificationManagement() {
         )}
 
         {/* ================= TEST MESSAGE ================= */}
-
+<br/>
         <form
           onSubmit={sendTest}
           className="mb-5 rounded-2xl bg-white p-4 shadow-sm sm:p-5"
@@ -350,7 +351,7 @@ function NotificationManagement() {
             </button>
 
           </div>
-
+<br/>
           <input
             value={testForm.message}
             onChange={(e) =>
@@ -366,8 +367,8 @@ function NotificationManagement() {
         </form>
 
         {/* ================= FILTERS ================= */}
-
-        <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+<br/>
+        <div className="mp-5 rounded-2xl bg-white p-4 shadow-sm sm:p-5">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
             <select
@@ -436,7 +437,7 @@ function NotificationManagement() {
 
           </div>
         </div>
-
+<br/>
         {/* ================= MESSAGE ================= */}
 
         {message && (

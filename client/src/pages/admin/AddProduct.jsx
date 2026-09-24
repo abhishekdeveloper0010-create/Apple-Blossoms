@@ -11,11 +11,11 @@ const API_URL =
 // =====================================================
 
 const CATEGORY_SIZES = {
-  Shirts: ["S", "M", "L", "XL", "XXL"],
-  Dresses: ["S", "M", "L", "XL", "XXL"],
-  Bangles: ["2-2", "2-4", "2-6", "2-8"],
+  Shirt: ["S", "M", "L", "XL", "XXL"],
+  Dress: ["S", "M", "L", "XL", "XXL"],
+  Bangle: ["2-2", "2-4", "2-6", "2-8"],
   Shoes: ["6", "7", "8", "9"],
-  Slippers: ["6", "7", "8", "9"],
+  Slipper: ["6", "7", "8", "9"],
   Beauty: ["No Size"],
 };
 
@@ -671,24 +671,24 @@ function AddProduct() {
                     Select Category
                   </option>
 
-                  <option value="Shirts">
-                    Shirts
+                  <option value="Shirt">
+                    Shirt
                   </option>
 
-                  <option value="Dresses">
-                    Dresses
+                  <option value="Dress">
+                    Dress
                   </option>
 
-                  <option value="Bangles">
-                    Bangles
+                  <option value="Bangle">
+                    Bangle
                   </option>
 
                   <option value="Shoes">
                     Shoes
                   </option>
 
-                  <option value="Slippers">
-                    Slippers
+                  <option value="Slipper">
+                    Slipper
                   </option>
 
                   <option value="Beauty">

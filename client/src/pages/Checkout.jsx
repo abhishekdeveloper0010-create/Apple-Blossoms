@@ -63,6 +63,181 @@ function Checkout() {
 
   const [couponDiscount, setCouponDiscount] = useState(0);
 
+  // =====================================================
+  // STEP 6 : BUSINESS ESSENTIALS
+  // =====================================================
+
+  // Saved addresses (multiple address support)
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(true);
+
+  // Pincode validation
+  const [pinStatus, setPinStatus] = useState(null); // null | {serviceable, ...}
+
+  // Live shipping + GST quote from server
+  const [quote, setQuote] = useState(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+
+  // ---------------------------------------------------
+  // Saved addresses load
+  // ---------------------------------------------------
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+
+    const loadAddresses = async () => {
+      try {
+        const response = await fetch(`${API_URL}/addresses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+
+        const list =
+          data.addresses || data.data?.addresses || data.data || [];
+
+        if (Array.isArray(list) && list.length > 0) {
+          setSavedAddresses(list);
+
+          // Default address pre-select karo
+          const def =
+            list.find((a) => a.is_default) || list[0];
+
+          if (def) {
+            applySavedAddress(def);
+          }
+        }
+      } catch (error) {
+        console.error("LOAD ADDRESSES ERROR:", error);
+      }
+    };
+
+    loadAddresses();
+  }, []);
+
+  // ---------------------------------------------------
+  // Saved address -> shipping form me bharo
+  // ---------------------------------------------------
+  const applySavedAddress = (address) => {
+    setSelectedAddressId(address.id);
+    setShowNewAddressForm(false);
+
+    setShipping((prev) => ({
+      ...prev,
+      name: address.full_name || prev.name,
+      email: address.email || prev.email,
+      phone: address.phone || prev.phone,
+      address: address.address_line || prev.address,
+      city: address.city || prev.city,
+      state: address.state || prev.state,
+      pin: address.pincode || prev.pin,
+    }));
+  };
+
+  // ---------------------------------------------------
+  // PINCODE VALIDATION (debounced)
+  // ---------------------------------------------------
+  useEffect(() => {
+    const pin = (shipping.pin || "").trim();
+
+    if (!/^[1-9][0-9]{5}$/.test(pin)) {
+      setPinStatus(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/checkout/pincode/${pin}`
+        );
+
+        const data = await response.json();
+
+        setPinStatus(data);
+      } catch (error) {
+        console.error("PINCODE CHECK ERROR:", error);
+        setPinStatus(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [shipping.pin]);
+
+  // ---------------------------------------------------
+  // LIVE QUOTE (shipping + GST) jab pin + payment ready
+  // ---------------------------------------------------
+  useEffect(() => {
+    const pin = (shipping.pin || "").trim();
+
+    if (!/^[1-9][0-9]{5}$/.test(pin) || cart.length === 0) {
+      setQuote(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        setQuoteLoading(true);
+
+        const response = await fetch(`${API_URL}/checkout/quote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            items: cart.map((item) => ({
+              productId: getProductId(item),
+              quantity: Number(item.quantity || 1),
+            })),
+            pincode: pin,
+            state: shipping.state,
+            paymentMethod: paymentMethod,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.quote) {
+          setQuote(data.quote);
+        } else {
+          setQuote(null);
+        }
+      } catch (error) {
+        console.error("QUOTE ERROR:", error);
+        setQuote(null);
+      } finally {
+        setQuoteLoading(false);
+      }
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [shipping.pin, shipping.state, cart, paymentMethod]);
+
+  // ---------------------------------------------------
+  // STEP 6 : EFFECTIVE AMOUNTS
+  // (server quote available ho to wahi use karo)
+  // ---------------------------------------------------
+  const effectiveShipping = quote
+    ? quote.shipping.charge
+    : cart.length > 0
+    ? 50
+    : 0;
+
+  const effectiveCodCharge = quote ? quote.shipping.codCharge : 0;
+
+  const effectiveTax = quote ? quote.tax.totalTaxAmount : 0;
+
+  const total =
+    subtotal +
+    effectiveShipping +
+    effectiveCodCharge +
+    effectiveTax -
+    couponDiscount;
+
   useEffect(() => {
     const savedCoupon = localStorage.getItem("appliedCoupon");
     if (savedCoupon) {
@@ -607,11 +782,7 @@ function Checkout() {
     0
   );
 
-  const delivery =
-    cart.length > 0 ? 50 : 0;
-
-  const total =
-    subtotal + delivery - couponDiscount;
+  // STEP 6 : delivery/total upar effective amounts se aate hain
 
   // =====================================================
   // SHIPPING INPUT
@@ -1250,6 +1421,22 @@ function Checkout() {
       }
 
       // ===================================================
+      // STEP 6 : PINCODE SERVICEABILITY CHECK
+      // ===================================================
+
+      if (
+        pinStatus &&
+        pinStatus.serviceable === false
+      ) {
+        setPaymentMessage(
+          pinStatus.message ||
+            "We do not deliver to this pincode."
+        );
+
+        return;
+      }
+
+      // ===================================================
       // API ORDER DATA
       // ===================================================
 
@@ -1259,7 +1446,7 @@ function Checkout() {
         subtotal,
 
         deliveryCharge:
-          delivery,
+          effectiveShipping,
 
         couponDiscount: couponDiscount,
         couponCode: couponDiscount > 0 ? JSON.parse(localStorage.getItem("appliedCoupon") || "{}").coupon?.code || null : null,
@@ -1310,6 +1497,15 @@ function Checkout() {
       try {
         setLoading(true);
 
+        // ===================================================
+        // STEP 6 : SAVED ADDRESS REUSE
+        // (selected saved address ho to naya create mat karo)
+        // ===================================================
+
+        if (selectedAddressId) {
+          orderData.addressId = selectedAddressId;
+          orderData.address_id = selectedAddressId;
+        } else {
         const addressResponse =
           await fetch(
             `${API_URL}/addresses`,
@@ -1374,6 +1570,7 @@ function Checkout() {
 
         orderData.address_id =
           addressResult.addressId;
+        }
 
         const response =
           await fetch(
@@ -1613,6 +1810,79 @@ function Checkout() {
                   className="space-y-6"
                 >
 
+                  {/* STEP 6 : SAVED ADDRESSES (MULTIPLE ADDRESS) */}
+
+                  {savedAddresses.length > 0 && (
+                    <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-gray-700">
+                          Saved Addresses
+                        </h3>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAddressId(null);
+                            setShowNewAddressForm(true);
+                            setShipping({
+                              name: "",
+                              email: "",
+                              phone: "",
+                              address: "",
+                              city: "",
+                              state: "",
+                              pin: "",
+                            });
+                          }}
+                          className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700"
+                        >
+                          + Add New
+                        </button>
+                      </div>
+
+                      <div className="mt-3 space-y-2">
+                        {savedAddresses.map((addr) => (
+                          <label
+                            key={addr.id}
+                            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                              selectedAddressId === addr.id
+                                ? "border-sky-500 bg-white"
+                                : "border-gray-200 bg-white/60"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="savedAddress"
+                              className="mt-1"
+                              checked={
+                                selectedAddressId === addr.id
+                              }
+                              onChange={() =>
+                                applySavedAddress(addr)
+                              }
+                            />
+
+                            <span className="text-sm text-gray-700">
+                              <strong>
+                                {addr.full_name}
+                              </strong>
+                              {addr.is_default ? (
+                                <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                                  DEFAULT
+                                </span>
+                              ) : null}
+                              <br />
+                              {addr.address_line}, {addr.city},{" "}
+                              {addr.state} - {addr.pincode}
+                              <br />
+                              {addr.phone}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* NAME + EMAIL */}
 
                   <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2">
@@ -1687,6 +1957,7 @@ function Checkout() {
                       <input
                         type="text"
                         name="pin"
+                        maxLength={6}
                         value={
                           shipping.pin
                         }
@@ -1696,6 +1967,22 @@ function Checkout() {
                         className="mt-2 w-full rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:border-sky-500"
                         required
                       />
+
+                      {/* STEP 6 : PINCODE VALIDATION FEEDBACK */}
+
+                      {pinStatus && (
+                        <p
+                          className={`mt-2 text-xs font-medium ${
+                            pinStatus.serviceable
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {pinStatus.serviceable
+                            ? `✓ Deliverable to ${pinStatus.zoneLabel} in ~${pinStatus.estimatedDeliveryText}`
+                            : pinStatus.message}
+                        </p>
+                      )}
                     </label>
                   </div>
 
@@ -2195,16 +2482,52 @@ function Checkout() {
 
                   <div className="flex justify-between pt-3 text-gray-600">
                     <span>
-                      Delivery
+                      Shipping
+                      {quote?.shipping?.freeShippingApplied
+                        ? " (FREE)"
+                        : ""}
                     </span>
 
                     <span>
                       ₹
-                      {delivery.toFixed(
+                      {effectiveShipping.toFixed(
                         2
                       )}
                     </span>
                   </div>
+
+                  {effectiveCodCharge > 0 && (
+                    <div className="flex justify-between pt-3 text-gray-600">
+                      <span>
+                        COD Handling Fee
+                      </span>
+
+                      <span>
+                        ₹
+                        {effectiveCodCharge.toFixed(
+                          2
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {effectiveTax > 0 && (
+                    <div className="flex justify-between pt-3 text-gray-600">
+                      <span>
+                        GST{" "}
+                        {quote?.tax?.rateSummary
+                          ? `(${quote.tax.rateSummary})`
+                          : ""}
+                      </span>
+
+                      <span>
+                        ₹
+                        {effectiveTax.toFixed(
+                          2
+                        )}
+                      </span>
+                    </div>
+                  )}
 
                   {couponDiscount > 0 && (
                     <div className="flex justify-between pt-3 text-green-600">

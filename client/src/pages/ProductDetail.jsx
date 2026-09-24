@@ -59,6 +59,46 @@ function ProductDetail() {
 
   const [reviewDrawerOpen, setReviewDrawerOpen] = useState(false);
 
+  // =====================================================
+  // STEP 6 : CHECK DELIVERY (PINCODE SERVICEABILITY)
+  // =====================================================
+
+  const [checkPin, setCheckPin] = useState("");
+  const [checkResult, setCheckResult] = useState(null);
+  const [checkLoading, setCheckLoading] = useState(false);
+
+  const handleCheckDelivery = async () => {
+    const pin = checkPin.trim();
+
+    if (!/^[1-9][0-9]{5}$/.test(pin)) {
+      setCheckResult({
+        serviceable: false,
+        message: "Please enter a valid 6-digit pincode.",
+      });
+      return;
+    }
+
+    try {
+      setCheckLoading(true);
+
+      const response = await fetch(
+        `${API_URL}/checkout/pincode/${pin}`
+      );
+
+      const data = await response.json();
+
+      setCheckResult(data);
+    } catch (error) {
+      console.error("CHECK DELIVERY ERROR:", error);
+      setCheckResult({
+        serviceable: false,
+        message: "Could not check pincode. Try again.",
+      });
+    } finally {
+      setCheckLoading(false);
+    }
+  };
+
   const [reviewDrawerMode, setReviewDrawerMode] = useState("all");
 
   // all = all reviews
@@ -1636,6 +1676,54 @@ function ProductDetail() {
                   >
                     Buy Now
                   </button>
+                </div>
+
+                {/* =================================================
+                    STEP 6 : CHECK DELIVERY WIDGET
+                ================================================= */}
+
+                <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                  <h3 className="text-sm font-bold text-gray-700">
+                    Check Delivery
+                  </h3>
+
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit pincode"
+                      value={checkPin}
+                      onChange={(e) =>
+                        setCheckPin(
+                          e.target.value.replace(/[^0-9]/g, "")
+                        )
+                      }
+                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-sky-500"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleCheckDelivery}
+                      disabled={checkLoading}
+                      className="rounded-xl bg-sky-600 px-5 py-2 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-60"
+                    >
+                      {checkLoading ? "..." : "Check"}
+                    </button>
+                  </div>
+
+                  {checkResult && (
+                    <p
+                      className={`mt-2 text-xs font-medium ${
+                        checkResult.serviceable
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {checkResult.serviceable
+                        ? `✓ Deliverable to ${checkResult.zoneLabel} in ~${checkResult.estimatedDeliveryText}. COD available.`
+                        : checkResult.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

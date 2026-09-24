@@ -97,7 +97,7 @@ function ProductInventory() {
           >
             ← Back to Admin
           </button>
-
+<br/> 
           {/* Title + Add Button */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
@@ -122,7 +122,7 @@ function ProductInventory() {
 
           </div>
         </div>
-
+<br/>  
         {/* ================= MESSAGE ================= */}
         {message && (
           <div className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-cyan-100 bg-cyan-50 p-4 text-sm text-cyan-800 sm:text-base">
@@ -436,6 +436,7 @@ function ProductInventory() {
         )}
 
       </div>
+      <br/> <br/> 
     </main>
   );
 }

@@ -360,7 +360,7 @@ function ShipmentManagement() {
           >
             ← Back to Admin
           </button>
-
+<br />
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl lg:text-4xl">
@@ -371,7 +371,7 @@ function ShipmentManagement() {
                 Create shipments, add tracking numbers and sync courier status.
               </p>
             </div>
-
+ 
             <button
               onClick={() => {
                 setError("");
@@ -385,7 +385,7 @@ function ShipmentManagement() {
             </button>
           </div>
 
-        </div>
+        </div><br />
 
         {/* ================= CONFIG ================= */}
 
