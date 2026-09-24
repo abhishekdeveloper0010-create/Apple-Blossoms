@@ -73,23 +73,6 @@ function Cart() {
   };
 
   // =====================================================
-  // LOAD APPLIED COUPON FROM LOCALSTORAGE
-  // =====================================================
-
-  useEffect(() => {
-    const savedCoupon = localStorage.getItem("appliedCoupon");
-    if (savedCoupon) {
-      try {
-        const { coupon, discount: savedDiscount } = JSON.parse(savedCoupon);
-        setAppliedCoupon(coupon);
-        setDiscount(savedDiscount || 0);
-      } catch (e) {
-        localStorage.removeItem("appliedCoupon");
-      }
-    }
-  }, []);
-
-  // =====================================================
   // GET USER-SPECIFIC CART KEY
   // =====================================================
 
@@ -1030,11 +1013,6 @@ function Cart() {
         data.coupon
       );
 
-      localStorage.setItem("appliedCoupon", JSON.stringify({
-        coupon: data.coupon,
-        discount: data.discount,
-      }));
-
       setCouponMessage(
         `Coupon ${data.coupon.code} applied! You saved ₹${formatPrice(
           data.discount
@@ -1063,7 +1041,6 @@ function Cart() {
     setCouponCode("");
     setDiscount(0);
     setAppliedCoupon(null);
-    localStorage.removeItem("appliedCoupon");
 
     setCouponMessage(
       "Coupon removed."
@@ -1528,6 +1505,7 @@ function Cart() {
                     Apply
                   </button>
                 </div>
+                
               ) : (
                 <div
                   className="
